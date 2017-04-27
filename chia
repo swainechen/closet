@@ -1,0 +1,1 @@
+print-genome-file.pl uti8 -suff ptt | grep UTI$1 | ptt-to-faa.pl uti8

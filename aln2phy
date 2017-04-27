@@ -1,0 +1,51 @@
+#!/usr/bin/perl -w
+#
+# take clustalw alignment
+# pump it out to format that phylip likes
+# take orgcode for outgroup, will be put in first
+#
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+$long = 0;	# use long sequence names
+$outgroup = "stLT";
+$notrim_stop = 0;
+GetOptions ('long' => \$long,
+            'outgroup=s' => \$outgroup,
+            'notrim' => \$notrim_stop);
+%seq = ();
+while (<>) {
+  chomp;
+  next if /^CLUSTAL/;
+  next if /^\s*[*.: ]*$/;
+  next if /^\s*$/;
+  @f = split;
+  if ($seq{$f[0]}) { $seq{$f[0]} .= $f[1]; }
+  else { $seq{$f[0]} = $f[1]; }
+}
+# sanity check - length all the same
+# also trim the stop codon at the end
+foreach $k (keys %seq) {
+  if ($notrim_stop) {
+    $seq{$k} =~ s/taa$//i;
+    $seq{$k} =~ s/tga$//i;
+    $seq{$k} =~ s/tag$//i;
+  }
+  push @len, length ($seq{$k});
+}
+foreach $i (1..$#len) {
+  die "Sequences not all same length" if $len[$i] != $len[0];
+}
+print scalar (keys %seq), "\t", $len[0], "\n";
+if ($seq{$outgroup}) {
+  # phylip wants a sequence name space padded to at least 10 characters, but the name itself can't be longer than 10
+  print "$outgroup          $seq{$outgroup}\n";
+  undef $seq{$outgroup};
+}
+foreach $k (keys %seq) {
+  next if $k eq $outgroup;
+  if ($long) {
+    print $k, "          $seq{$k}\n";
+  } else {
+    print substr($k, 0, 10), "          $seq{$k}\n";
+  }
+}

@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+#
+# count the number of tab-delimited columns.  Gives you 0-based result.
+#
+
+if ((defined $ARGV[0]) && (($ARGV[0] eq '-h') || ($ARGV[0] eq '--help'))) {
+  print "Usage: switchcols [ -d DELIMITER ] -c #,# INPUT\n";
+  print "Switches columns (0-based)\n";
+  print "  -d specifies delimiter, default is tab.\n";
+  print "  -c specifies columns to switch, 0-based.  Default is switch 0,1.\n";
+  exit (-1);
+}
+
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+$delimiter = "\t";
+$columns = "0,1";
+GetOptions ('d=s' => \$delimiter,
+            'c=s' => \$columns);
+
+($c1, $c2) = split /,/, $columns;
+while (defined ($in = <>)) {
+  chomp $in;
+  @in = split /$delimiter/, $in;
+  $temp = $in[$c1];
+  $in[$c1] = $in[$c2];
+  $in[$c2] = $temp;
+  print join ($delimiter, @in), "\n";
+}

@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+#
+# sequential format to fasta format for sequence
+# i.e. pseudo-modified phylip format to fasta
+# useful for pulling strainid, sequence from oracle
+#
+use warnings;
+use strict;
+use vars qw(@f $seq);
+
+while (<>) {
+  chomp;
+  @f = split /\s+/, $_;
+  $seq = pop @f;
+  print ">", join (" ", @f), "\n", $seq, "\n";
+}

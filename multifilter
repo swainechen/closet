@@ -1,0 +1,92 @@
+#!/usr/bin/perl -w
+#
+# filter based on a column
+#
+use slchen;
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+
+@col = ();
+@op = ();
+$abs = 0;
+$negate = 0;
+$delim = "\t";
+$mode = 1;
+
+GetOptions ('col=s' => \@col,
+            'op=s' => \@op,
+            'mode=s' => \$mode,
+            'abs' => \$abs,
+            'v' => \$negate,
+            'delim=s' => \$delim);
+
+if (!@op) {
+  print "Usage: $0 [ -mode [AND|OR] ] [ -col <#> -op [<=>]<float> ]\n";
+  print "Multiple columns and operators are ok, default mode is AND\n";
+  exit;
+}
+@col = parse_list(join (",", @col));
+$mode = 1 if $mode =~ /and/i;
+$mode = 0 if $mode =~ /or/i;
+
+# parse the tests
+my $test;
+if ($#col < $#op) {
+  print "Have ", scalar(@col), " columns but ", scalar(@op), " operators\n";
+  exit;
+}
+foreach $i (0..$#col) {
+  if (!defined $op[$i]) {
+    $op[$i] = $op[$#op];
+  }
+  $op[$i] =~ /^([<=>]+)(.*)$/;
+  $operator = $1;
+  $value = $2;
+  if (!isfloat($value)) {
+    print "Can't parse number ($value) from $op[$i]\n";
+    exit;
+  }
+  if ($operator =~ /^=+$/) {
+    $operator = "==";
+  } elsif ($operator =~ /=/ && $operator =~ /([<>])/) {
+    $operator = $1."=";		# make sure we have <= or >= instead of => or =<
+  } elsif ($operator =~ />/ && $operator =~ /</) {
+    $operator = "!=";
+  }
+  $test->{$col[$i]}->{$operator} = $value;
+}
+
+while (<>) {
+  if (/^#/) {
+    print;
+    next;
+  }
+  chomp;
+  @f = split /$delim/, $_;
+  $printme = $mode;	# and - default print, set to zero if fail test
+			# or - default not print, set to one if pass test
+
+  # do the tests
+  foreach $i (keys %$test) {
+    if (defined $f[$i] && isfloat $f[$i]) {
+      foreach $operator (keys %{$test->{$i}}) {
+        $pass = eval("$f[$i] $operator $test->{$i}->{$operator}");
+        if ($mode && !$pass) {
+          $printme = 0;		# and - don't print if fail
+        } elsif (!$mode && $pass) {
+          $printme = 1;		# or - print if pass
+        }
+      }
+    } else {
+      if ($mode) {	# and - fail if undefined
+        $printme = 0;	# or - it can still pass a test for another column
+      }
+    }
+  }
+  if ($negate) {
+    $printme = !$printme;
+  }
+  next if !$printme;
+  print;
+  print "\n";
+}

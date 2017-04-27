@@ -1,0 +1,113 @@
+#!/usr/bin/perl -w
+
+# This is just a frontend for blastall so that you can do a blastp or
+# blastn against a given organism more easily.
+# This assumes you only want the top hit for each query sequence
+# and uses 2 CPUs by default, no alignments are shown.
+# Only allows blastp and blastn searches.
+
+use Getopt::Long;
+use File::Temp;
+use File::Basename;
+&Getopt::Long::Configure("pass_through");
+
+File::Basename::basename($0) =~ /(t?blast[npx])$/;
+my $program = $1;
+my $dbtype = "p";		# protein
+my $eValue = 0.0000000001;
+my $F = 'F';		# no filtering if this is 'F'
+my $m = 6;
+my $b = 1;
+my $v = 0;
+my $db = "";
+my $outfmt = "";
+
+if ($program eq "blastn" || $program eq "tblastn" || $program eq "tblastx") {
+  $dbtype = "n";	# nucleotide
+}
+
+GetOptions (
+  'db=s' => \$db,
+  'F=s' => \$F,
+  'b=i' => \$b,
+  'v=i' => \$v,
+  'm=i' => \$m,
+  'e=f' => \$eValue,
+  'outfmt=s' => \$outfmt
+);
+
+if (@ARGV && !length $db) {
+  if ($ARGV[0] eq 'nt' || $ARGV[0] eq 'nr') {
+    if ($dbtype eq "p") {
+      $db = "/usr/local/lib/Genomes/nr/nr";
+    } else {
+      $db = "/usr/local/lib/Genomes/nr/nt";
+    }
+    shift;
+  } elsif ($ARGV[0] eq 'pdb' || $ARGV[0] eq 'pdbaa') {
+    $db = "/usr/local/lib/Genomes/nr/pdbaa";
+    shift;
+  } elsif (length $ARGV[0] == 4) {
+    use Orgmap qw(:DEFAULT $fileprefix);
+    &read_orgmap;
+    if ($dbtype eq "p") {
+      $db = $fileprefix.".faa";
+    } else {
+      $db = $fileprefix.".fna";
+    }
+  }
+} elsif (!length $db || !-f $db) {
+  # print usage and exit
+  print "Usage: $0 [ <orgcode> | nt | nr | pdbaa | -db <fasta to use as database> ] <fasta to use as query> [ -m <#> ] [ -F <T|F> ] [ -b <#> ] [ -v <#> ] [ -evalue <float> ]\n";
+  print "  -m, -F, -evalue are blast parameters passed on\n";
+  exit;
+}
+
+my $tempdir;
+my $current;
+$tempdir = File::Temp::tempdir( CLEANUP => 1);
+# check for db files, make them temporarily if needed, skip this for nt/nr
+if ((!-f "$db.$dbtype" . "hr" || !-f "$db.$dbtype" . "in" || !-f "$db.$dbtype" . "sq") && !-f "$db.$dbtype" . "al") {
+  if ($db =~ /\.tgz$/) {
+    if ($dbtype eq "p") {
+      $db = `tar xvzf $db -C $tempdir --wildcards '*.faa' --strip-components=1`;
+    } else {
+      $db = `tar xvzf $db -C $tempdir --wildcards '*.assembly' --strip-components=1`;
+    }
+    chomp($db);
+  } else {
+    system "cp $db $tempdir";
+  }
+  # we're in blastn so we know this should be a nucleotide database
+  $db = "$tempdir/" . File::Basename::basename($db);
+  if ($dbtype eq "p") {
+    system "makeblastdb -dbtype prot -in $db 2>&1 > /dev/null";
+  } else {
+    system "makeblastdb -dbtype nucl -in $db 2>&1 > /dev/null";
+  }
+}
+
+my $filtering = "";
+if ($F eq "F") {
+  if ($program eq "blastn") {
+    $filtering = "-dust no";
+  } else {
+    $filtering = "-seg no";
+  }
+}
+my $limiter = "-num_alignments";
+my $desc_limiter = "-num_descriptions $v";
+if ($m == 5 || $m == 6 || $m == 7 || $m == 9 || $m == 10) {
+  $limiter = "-max_target_seqs";
+  $desc_limiter = "";
+}
+
+open IN, ">$tempdir/input";
+while (<>) {
+  print IN;
+}
+system "$program -db $db -query $tempdir/input -out - -evalue $eValue $filtering -outfmt '$m $outfmt' $limiter $b $desc_limiter -num_threads 2";
+
+if (-f "error.log" && (stat("error.log"))[7] == 0) {
+  unlink "error.log";
+}

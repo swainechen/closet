@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+#
+# convert interleaved phylip sequence file to format that paml likes
+# phylip has 10 character name fields
+# paml allows 30 characters, and 2 spaces signifies the end of the name field
+# paml sequences not interleaved
+# also, paml doesn't want stop codons at the end
+# also, sort the sequences by name
+#
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+$long = 0;
+&GetOptions ('long' => \$long);
+
+$info = <>;
+chomp $info;
+$info =~ s/^\s+//;
+($num, $length) = split /\s+/, $info;
+foreach $i (1..$num) {
+  $_ = <>;
+  chomp;
+  if ($long) {
+    /\s\s/;
+    $name[$i] = $`;
+    $_ = $';
+  } else {
+    $name[$i] = substr ($_, 0, 10, "");
+    $name[$i] =~ s/\s*$//g;
+  }
+  s/\s//g;
+  $seq[$i] = $_;
+}
+$i = 1;
+while (<>) {
+  chomp;
+  if (/^\s*$/) { $i = 1; next; }
+  s/\s//g;
+  $seq[$i] .= $_;
+  ++$i;
+}
+foreach $i (1..$num) {
+  $seq[$i] =~ s/taa$//i;
+  $seq[$i] =~ s/tag$//i;
+  $seq[$i] =~ s/tga$//i;
+  $length[$i] = length $seq[$i];
+}
+foreach $i (2..$num) {
+  if ($length[$i] != $length[1]) { print "Sequence length error\n"; exit; }
+}
+printf "%5d%12d\n", $num, $length[1];
+@index = sort { $name[$a] cmp $name[$b] } (1..$num);
+foreach $i (@index) {
+  print "$name[$i]  $seq[$i]\n";
+}

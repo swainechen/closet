@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+#
+# filter based on a column
+#
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+
+$col = 0;
+$lt = "";
+$gt = "";
+$eq = "";
+$abs = 0;
+$negate = 0;
+$delim = "\t";
+
+GetOptions ('col=i' => \$col,
+            'lt=f' => \$lt,
+            'gt=f' => \$gt,
+            'eq=f' => \$eq,
+            'abs' => \$abs,
+            'v' => \$negate,
+            'delim=s' => \$delim);
+
+if ($lt eq "" && $gt eq "" && $eq eq "") {
+  print "Usage: $0 [-col #] [-lt <float>] [-gt <float>] [-eq <float>] [-abs]\n";
+  exit;
+}
+
+while (<>) {
+  if (/^#/) {
+    print;
+    next;
+  }
+  chomp;
+  @f = split /$delim/, $_;
+  if ($negate) {
+    if (defined $f[$col] && $f[$col] =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/) {
+      next if ($lt ne "" && $f[$col] <= $lt);
+      next if ($gt ne "" && $f[$col] >= $gt);
+      next if ($eq ne "" && $f[$col] == $eq);
+    }
+  } else {
+    # we're going to throw away undefined values
+    next if !defined $f[$col];
+    # we need a number - use float match from Programming Perl, 3rd ed, p.190
+    next if ($f[$col] !~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/);
+    next if ($lt ne "" && $f[$col] > $lt);
+    next if ($gt ne "" && $f[$col] < $gt);
+    next if ($eq ne "" && $f[$col] != $eq);
+  }
+  print;
+  print "\n";
+}

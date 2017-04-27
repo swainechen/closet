@@ -1,0 +1,76 @@
+#!/usr/bin/perl -w
+#
+# Calculate mean, median, mode, and std deviation.  Also spit out values
+# outside of specified number of std deviations.
+
+$d = "\t";
+$col = 0;
+$outlier = 0;
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+GetOptions ('delimiter=s' => \$d,
+            'col=s' => \$col,
+            'outlier=f' => \$outlier);
+
+@cols = split /,/, $col;
+foreach $i (reverse 0..$#cols) {
+  if ($cols[$i] =~ /(\d+)[-.]+(\d+)/) {
+    splice @cols, $i, 1, ($1..$2);
+  }
+}
+
+sub sum {
+  my $t = 0;
+  for (my $i = 0; $i < scalar @_; ++$i) { $t += $_[$i]; }
+  return $t;
+}
+
+foreach $i (0..$#cols) {
+  @{"x$i"} = ();
+}
+while (defined($x = <>)) {
+  next if $x =~ /^#/;
+  next if $x =~ /^>/;
+  chomp $x;
+  @f = split /$d/, $x;
+  foreach $i (0..$#cols) {
+    push @{"x$i"}, $f[$cols[$i]];
+  }
+}
+sub numerically { $a <=> $b; }
+foreach $i (0..$#cols) {
+  @{"x$i"} = sort numerically @{"x$i"};
+  $mean[$i] = (sum @{"x$i"})/(scalar @{"x$i"});
+  $mid[$i] = ($#{"x$i"})/2;
+  if ($mid[$i] == int($mid[$i])) { $median[$i] = ${"x$i"}[$mid[$i]]; }
+  else { $median[$i] = (${"x$i"}[int($mid[$i])] + ${"x$i"}[int($mid[$i])+1])/2; }
+}
+
+foreach $i (0..$#cols) {
+  %{"count$i"} = ();
+  for ($j = 0; $j < scalar @{"x$i"}; ++$j) {
+    ${"xsq$i"}[$j] = (${"x$i"}[$j] - $mean[$i])**2;
+    ++${"count$i"}{${"x$i"}[$j]};
+  }
+  $stddev[$i] = sqrt((sum @{"xsq$i"})/((scalar @{"x$i"}) - 1));
+  $max[$i] = 0;
+  foreach $unique (sort keys %{"count$i"}) {
+    if (${"count$i"}{$unique} > $max[$i]) { $max[$i] = ${"count$i"}{$unique}; }
+  }
+  @u = ();
+  foreach $unique (sort keys %{"count$i"}) {
+    if (${"count$i"}{$unique} == $max[$i]) { push @u, $unique; }
+  }
+  $mode[$i] = (sum @u)/(scalar @u);
+  printf STDOUT "=\t%d\t%.5f\t%.5f\t%.5f\t%.5f\n", scalar @{"x$i"}, $mean[$i], $median[$i], $mode[$i], $stddev[$i];
+  if ($outlier > 0) {
+    $cut1 = $mean[$i] - $outlier * $stddev[$i];
+    $cut2 = $mean[$i] + $outlier * $stddev[$i];
+    for ($j = 0; $j < scalar @{"x$i"}; ++$j) {
+      if (${"x$i"}[$j] < $cut1) { print STDOUT ${"x$i"}[$j], "\n"; }
+      if (${"x$i"}[$j] > $cut2) { print STDOUT ${"x$i"}[$j], "\n"; }
+    }
+  }
+}
+
+

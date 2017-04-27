@@ -1,0 +1,4 @@
+#!/bin/tcsh
+foreach i (`ls -1 $1/*.ps`)
+  convert $2 $i $i:r.png
+end

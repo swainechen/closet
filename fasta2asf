@@ -1,0 +1,192 @@
+#!/usr/bin/perl
+#
+# take aligned fasta sequence
+# dump out some kind of minimal asf sequence
+# consensus will be by voting, then by first in order
+# dots indicate identity with consensus
+#
+use warnings;
+use strict;
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+
+use vars qw($spacer $namelength $seq $i $name @res $length $key %order @consensus %counts $max $scale $offset $linelength $blocksize @identical_index $diff_only @diff_index $print_index_ref $scale $position_offset $numbering_offset);
+
+$linelength = 60;	# not really length, but number of residues to print
+$blocksize = 10;
+$spacer = " ";
+$namelength = 10;
+$diff_only = 0;
+$position_offset = 0;	# display starting from this position
+$numbering_offset = 0;	# change numbers by this amount (i.e. subtract this)
+
+GetOptions (
+  'linelength=i' => \$linelength,
+  'spacer=s' => \$spacer,
+  'blocksize=i' => \$blocksize,
+  'namelength=i' => \$namelength,
+  'differences' => \$diff_only,
+  'offset=i' => \$position_offset,
+  'numbering=i' => \$numbering_offset
+);
+
+undef $name;
+$i = 0;
+while (<>) {
+  chomp;
+  next if /^#/;
+  if (s/^>//) {
+    $name = $_;
+  } elsif (defined $name) {
+    s/\s//g;
+    $seq->{$name} = [ split //, $_ ];
+    $order{$name} = $i;
+    $i++;
+    undef $name;
+  }
+}
+$scale = $i*$i;
+
+# check length
+$length = 0;
+foreach $key (keys %$seq) {
+  !$length && ($length = scalar @{$seq->{$key}});
+  die "Length of $key is not $length" if $length != scalar @{$seq->{$key}};
+}
+
+# mangle the sequences
+@identical_index = ();
+@diff_index = ();
+foreach $i (0..$length-1) {
+  %counts = ();
+  foreach $key (keys %$seq) {
+    next if $seq->{$key}->[$i] eq '-';	# gaps don't count
+    !defined $counts{$seq->{$key}->[$i]} && ($counts{$seq->{$key}->[$i]} = 0);
+    $counts{$seq->{$key}->[$i]}++;
+    $counts{$seq->{$key}->[$i]} -= $order{$key}/$scale - ($order{$key}/$scale)**2;
+    # first term is if we have seq 1 and 2 vs seq 3 and 4, want 1 and 2 to be the consensus
+    # second term is if we have seq 1 and 4 vs 2 and 3, we want 1 and 4 to be the consensus
+  }
+  if (scalar keys %counts == 1) {	# all identical
+    push @identical_index, $i;
+  } elsif (scalar keys %counts == 0) {	# didn't get anything but gaps
+    push @identical_index, $i;
+    push @diff_index, $i+1;
+    $consensus[$i] = "-";
+  } else {
+    push @diff_index, $i+1;		# we're only going to print these out
+  }
+  $max = 0;
+  foreach $key (keys %counts) {
+    ($counts{$key} > $max) && ($max = $counts{$key});
+  }
+  foreach $key (keys %counts) {
+    if ($counts{$key} == $max) {
+      $consensus[$i] = $key;
+    }
+  }
+  foreach $key (keys %$seq) {
+    if ($seq->{$key}->[$i] eq $consensus[$i] && $consensus[$i] ne "-") {
+      $seq->{$key}->[$i] = ".";
+    }
+  }
+}
+
+if ($diff_only) {
+  foreach $i (reverse @identical_index) {
+    foreach $key (keys %$seq) {
+      splice @{$seq->{$key}}, $i, 1;
+    }
+    splice @consensus, $i, 1;
+    $length--;
+  }
+  $print_index_ref = convert_index (@diff_index);
+} else {
+  $print_index_ref = convert_index (1..$length);
+}
+
+# print everything out
+# start with consensus
+#$offset = 0;
+$offset = $position_offset;
+while ($offset < $length) {
+  foreach $scale (sort { $b <=> $a } keys %{$print_index_ref}) {
+    if (!$scale) {
+      printf "%-".$namelength.".".$namelength."s", "Position";
+    } else {
+      printf "%-".$namelength.".".$namelength."s", "";
+    }
+    print $spacer;
+    for ($i = $offset; $i < $length && $i < $offset + $linelength; $i += $blocksize) {
+      print $spacer;
+      if ($i+$blocksize-1 < $length) {
+        print @{$print_index_ref->{$scale}}[$i..$i+$blocksize-1];
+      } else {
+        print @{$print_index_ref->{$scale}}[$i..$length-1];
+      }
+    }
+    print "\n";
+  }
+  printf "%-".$namelength.".".$namelength."s", "consensus";
+  print $spacer;
+  for ($i = $offset; $i < $length && $i < $offset + $linelength; $i += $blocksize) {
+    print $spacer;
+    if ($i+$blocksize-1 < $length) {
+      print @consensus[$i..$i+$blocksize-1];
+    } else {
+      print @consensus[$i..$length-1];
+    }
+  }
+  print "\n";
+  foreach $key (sort { $order{$a} <=> $order{$b} } keys %$seq) {
+    printf "%-".$namelength.".".$namelength."s", $key;
+    print $spacer;
+    for ($i = $offset; $i < $length && $i < $offset + $linelength; $i += $blocksize) { 
+      print $spacer;
+      if ($i+$blocksize-1 < $length) { 
+        print @{$seq->{$key}}[$i..$i+$blocksize-1];
+      } else {
+        print @{$seq->{$key}}[$i..$length-1];
+      }
+    }
+    print "\n";
+  }
+  print "\n";
+  $offset += $linelength;
+}
+
+sub convert_index {
+  my @i = @_;
+  my $return_ref = ();
+  my ($i, $j, $k);
+  my $max = 0;
+  my $order;
+#  if ($position_offset > 0) {
+#    foreach $i (0..$#i) {
+#      $i[$i] += $position_offset;
+#    }
+#  } elsif ($position_offset < 0) {
+#    foreach $i (0..$#i) {
+#      $i[$i] = abs ($position_offset) - $i[$i];
+#    }
+#  }
+  foreach $j (0..$#i) {
+    $i[$j] -= $numbering_offset;
+    if ($i[$j] > $max) { $max = $i[$j]; }
+  }
+  $order = int (log ($max) / log 10);
+  foreach $j (0..$order) {
+    $k = 0;
+    foreach $i (@i) {
+      $return_ref->{$j}->[$k] = int ($i / (10**$j)) % 10;
+      $k++;
+    }
+  }
+  foreach $k (0..$#{$return_ref->{0}}) {	# get rid of leading 0's
+    foreach $j (reverse 1..$order) {	# we're always going to keep the last 0
+      last if ($return_ref->{$j}->[$k]);
+      $return_ref->{$j}->[$k] = " ";
+    }
+  }
+  return $return_ref;
+}

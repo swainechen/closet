@@ -1,0 +1,72 @@
+#!/usr/bin/perl -w
+#
+# take a phylip alignment
+# convert to fasta
+#
+
+my $long = 0;
+my $interleaved = 0;	# the alternative is interleaved
+my $i;
+my $num;
+my $length;
+my @name;
+my @seq;
+
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+GetOptions (
+  'interleaved' => \$interleaved,
+  'long' => \$long
+);
+
+$_ = <>;
+chomp;
+($num, $length) = split;
+if (!$interleaved) {
+  # this should be similar to a fasta file
+  $i = 0;
+  while (<>) {
+    chomp;
+    if (s/\s+$//) {
+      $name[$i] = $_;
+      next;
+    }
+    s/\s//g;
+    $seq[$i] = $_;
+    $i++;
+  }
+} else {
+  foreach $i (0..$num-1) {
+    $_ = <>;
+    chomp;
+    if ($long) {
+      @f = split /\s+/, $_;
+      $name[$i] = shift @f;
+      $seq[$i] = join ("", @f);
+    } else {
+      $name[$i] = substr ($_, 0, 10);
+      $name[$i] =~ s/^\s+//;
+      $name[$i] =~ s/\s+$//;
+      $seq[$i] = substr ($_, 10);
+    }
+    $seq[$i] =~ s/\s//g;
+  }
+  $i = 0;
+  while (<>) {
+    chomp;
+    if (/^\s*$/) { next; }
+    tr/UXZgatcbdhkmnrsvwxyflsycwlphqrimtnksrvadegGATCBDHKMNRSVWXYFLSYCWLPHQRIMTNKSRVADEG-//cd;
+    $seq[$i] .= $_;
+    $i++;
+    $i = 0 if $i == $num;
+  }
+}
+
+foreach $i (0..$num-1) {
+  if ($length != length ($seq[$i])) {
+    print "sequence $i, $name[$i] is of length ", length $seq[$i], ", not of length $length\n";
+    print "$seq[$i]\n";
+    exit;
+  }
+  print ">$name[$i]\n$seq[$i]\n";
+}

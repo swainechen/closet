@@ -1,0 +1,17 @@
+#!/usr/bin/perl -w
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
+$n = 0;
+$d = "\t";
+GetOptions ('n=i' => \$n, 'd=s' => \$d);
+if (!$n) { print "Usage: collate.pl -n <# lines per set> [ -d delimiter ] <input file>\n"; exit; }
+$i = 0;
+while (<>) {
+  chomp;
+  push @{'out'.$i}, $_;
+  $i++;
+  if ($i == $n) { $i = 0; }
+}
+foreach $i (0 .. $n - 1) {
+  print join ($d, @{'out'.$i}), "\n";
+}
