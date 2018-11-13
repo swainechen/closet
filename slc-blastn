@@ -21,6 +21,7 @@ my $b = 1;
 my $v = 0;
 my $db = "";
 my $outfmt = "";
+my $ncpu = `grep -c ^processor /proc/cpuinfo`;
 
 if ($program eq "blastn" || $program eq "tblastn" || $program eq "tblastx") {
   $dbtype = "n";	# nucleotide
@@ -106,7 +107,7 @@ open IN, ">$tempdir/input";
 while (<>) {
   print IN;
 }
-system "$program -db $db -query $tempdir/input -out - -evalue $eValue $filtering -outfmt '$m $outfmt' $limiter $b $desc_limiter -num_threads 2";
+system "$program -db $db -query $tempdir/input -out - -evalue $eValue $filtering -outfmt '$m $outfmt' $limiter $b $desc_limiter -num_threads $ncpu";
 
 if (-f "error.log" && (stat("error.log"))[7] == 0) {
   unlink "error.log";
