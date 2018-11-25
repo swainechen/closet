@@ -16,17 +16,30 @@ my $min_coverage = 0.9;	# SRST2 defaults
 my $min_identity = 0.9;	# SRST2 defaults
 my $out_name = "";
 my $report_alleles = 0;
+my $species = "";
+my $species_data = &set_species_data;
 GetOptions (
   'fasta=s' => \$fasta,
   'coverage=f' => \$min_coverage,
   'identity=f' => \$min_identity,
   'report_all_alleles' => \$report_alleles,
-  'name=s' => \$out_name
+  'name=s' => \$out_name,
+  'species=s' => \$species
 );
 
+if ($species ne "" && defined($species_data->{$species})) {
+  $fasta = $species_data->{$species};
+}
+
 if (!-f $fasta || !defined $ARGV[0] || !-f $ARGV[0]) {
-  print "Usage: $0 <assembled genome> -fasta <SRST2 fasta file> [ -report_all_alleles ]\n";
+  print "Usage: $0 <assembled genome> -fasta <SRST2 fasta file> [ -report_all_alleles ] [ -name <string> ]\n";
+  print "       $0 <assembled genome> -species <species> [ -report_all_alleles ] [ -name <string> ]\n";
   print "expects fasta to be in same format that SRST2 uses so genes can be grouped\n";
+  print "will use -name to set output name for each line, otherwise will use input filename\n";
+  print "Known species:\n";
+  foreach $species (sort keys %$species_data) {
+    print "  $species\n";
+  }
   exit;
 }
 
@@ -186,4 +199,31 @@ if ($report_alleles) {
       print $hits->{$i}->{$j}->{QSEQ}, "\n";
     }
   }
+}
+
+sub set_species_data {
+  my $meta;
+  my $base = "/mnt/genomeDB/SRST2";
+  my $i;
+  my $file;
+  my @fasta;
+  opendir D, $base;
+  while ($i = readdir D) {
+    if (-d "$base/$i") {
+      @fasta = ();
+      opendir O, "$base/$i";
+      while ($file = readdir O) {
+        if ($file =~ /.*-combined-.*\.fasta$/) {
+          push @fasta, $file;
+        }
+      }
+      @fasta = sort {$a cmp $b} @fasta;
+      if (scalar @fasta) {
+        $meta->{$i} = "$base/$i/$fasta[$#fasta]";
+      }
+      closedir O;
+    }
+  }
+  closedir D;
+  return $meta;
 }
