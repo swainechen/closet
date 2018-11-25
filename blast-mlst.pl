@@ -282,7 +282,12 @@ close M;
 #   maxMAF (defined as 0 for us)
 print "$header\n";
 if ($st) {
-  print join ("\t", $out_name, $st, @allele_out), "\n";
+  # check for differences, these are summarized in $allele_out[$#allele_out-3]
+  if ($allele_out[$#allele_out-3] eq "") {
+    print join ("\t", $out_name, $st, @allele_out), "\n";
+  } else {
+    print join ("\t", $out_name, $st . "*", @allele_out), "\n";
+  }
 } elsif ($missing) {
   print join ("\t", $out_name, "NF*", @allele_out), "\n";
 } else {
@@ -291,35 +296,51 @@ if ($st) {
 
 sub set_data {
   my $meta;
-  my $mlst_base = "/mnt/genomeDB/SRST2/0.1.8/MLST";
+  my $mlst_base = "/mnt/genomeDB/SRST2/MLST";
+
+  $meta->{"Abaumannii"}->{FASTA} = "$mlst_base/Acinetobacter_baumannii#1.fasta";
+  $meta->{"Abaumannii"}->{DEFINITIONS} = "$mlst_base/abaumannii.txt";
+  $meta->{"Abaumannii"}->{DELIMITER} = "_";
 
   $meta->{"Ecoli"}->{FASTA} = "$mlst_base/Escherichia_coli#1.fasta";
   $meta->{"Ecoli"}->{DEFINITIONS} = "$mlst_base/ecoli.txt";
-  $meta->{"Ecoli"}->{DELIMITER} = "-";
+  $meta->{"Ecoli"}->{DELIMITER} = "_";
 
   $meta->{"GBS"}->{FASTA} = "$mlst_base/Streptococcus_agalactiae.fasta";
   $meta->{"GBS"}->{DEFINITIONS} = "$mlst_base/sagalactiae.txt";
   $meta->{"GBS"}->{DELIMITER} = "_";
 
-  $meta->{"Kpneumo"}->{FASTA} = "$mlst_base/Klebsiella_pneumoniae.fasta";
-  $meta->{"Kpneumo"}->{DEFINITIONS} = "$mlst_base/kpneumoniae.txt";
-  $meta->{"Kpneumo"}->{DELIMITER} = "_";
+  $meta->{"Sagalactiae"}->{FASTA} = "$mlst_base/Streptococcus_agalactiae.fasta";
+  $meta->{"Sagalactiae"}->{DEFINITIONS} = "$mlst_base/sagalactiae.txt";
+  $meta->{"Sagalactiae"}->{DELIMITER} = "_";
 
-  $meta->{"Campy"}->{FASTA} = "$mlst_base/Campylobacter_jejuni.fasta";
-  $meta->{"Campy"}->{DEFINITIONS} = "$mlst_base/campylobacter.txt";
-  $meta->{"Campy"}->{DELIMITER} = "_";
+  $meta->{"Kpneumoniae"}->{FASTA} = "$mlst_base/Klebsiella_pneumoniae.fasta";
+  $meta->{"Kpneumoniae"}->{DEFINITIONS} = "$mlst_base/kpneumoniae.txt";
+  $meta->{"Kpneumoniae"}->{DELIMITER} = "_";
 
-  $meta->{"Listeria"}->{FASTA} = "$mlst_base/Listeria_monocytogenes.fasta";
-  $meta->{"Listeria"}->{DEFINITIONS} = "$mlst_base/lmonocytogenes.txt";
-  $meta->{"Listeria"}->{DELIMITER} = "_";
+  $meta->{"Spneumoniae"}->{FASTA} = "$mlst_base/Klebsiella_pneumoniae.fasta";
+  $meta->{"Spneumoniae"}->{DEFINITIONS} = "$mlst_base/kpneumoniae.txt";
+  $meta->{"Spneumoniae"}->{DELIMITER} = "_";
+
+  $meta->{"Cjejuni"}->{FASTA} = "$mlst_base/Campylobacter_jejuni.fasta";
+  $meta->{"Cjejuni"}->{DEFINITIONS} = "$mlst_base/campylobacter.txt";
+  $meta->{"Cjejuni"}->{DELIMITER} = "_";
+
+  $meta->{"Lmonocytogenes"}->{FASTA} = "$mlst_base/Listeria_monocytogenes.fasta";
+  $meta->{"Lmonocytogenes"}->{DEFINITIONS} = "$mlst_base/lmonocytogenes.txt";
+  $meta->{"Lmonocytogenes"}->{DELIMITER} = "_";
 
   $meta->{"GAS"}->{FASTA} = "$mlst_base/Streptococcus_pyogenes.fasta";
   $meta->{"GAS"}->{DEFINITIONS} = "$mlst_base/spyogenes.txt";
   $meta->{"GAS"}->{DELIMITER} = "_";
 
+  $meta->{"Spyogenes"}->{FASTA} = "$mlst_base/Streptococcus_pyogenes.fasta";
+  $meta->{"Spyogenes"}->{DEFINITIONS} = "$mlst_base/spyogenes.txt";
+  $meta->{"Spyogenes"}->{DELIMITER} = "_";
+
   $meta->{"Senterica"}->{FASTA} = "$mlst_base/Salmonella_enterica.fasta";
   $meta->{"Senterica"}->{DEFINITIONS} = "$mlst_base/senterica.txt";
-  $meta->{"Senterica"}->{DELIMITER} = "-";
+  $meta->{"Senterica"}->{DELIMITER} = "_";
 
   $meta->{"Efaecalis"}->{FASTA} = "$mlst_base/Enterococcus_faecalis.fasta";
   $meta->{"Efaecalis"}->{DEFINITIONS} = "$mlst_base/efaecalis.txt";
@@ -333,9 +354,43 @@ sub set_data {
   $meta->{"Ecloacae"}->{DEFINITIONS} = "$mlst_base/ecloacae.txt";
   $meta->{"Ecloacae"}->{DELIMITER} = "_";
 
+  $meta->{"Paeruginosa"}->{FASTA} = "$mlst_base/Pseudomonas_aeruginosa.fasta";
+  $meta->{"Paeruginosa"}->{DEFINITIONS} = "$mlst_base/paeruginosa.txt";
+  $meta->{"Paeruginosa"}->{DELIMITER} = "_";
+
   $meta->{"Saureus"}->{FASTA} = "$mlst_base/Staphylococcus_aureus.fasta";
   $meta->{"Saureus"}->{DEFINITIONS} = "$mlst_base/saureus.txt";
   $meta->{"Saureus"}->{DELIMITER} = "_";
+
+  $meta->{"IncAC"}->{FASTA} = "$mlst_base/Plasmid/IncAC.fasta";
+  $meta->{"IncAC"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncAC.txt";
+  $meta->{"IncAC"}->{DELIMITER} = "_";
+
+  $meta->{"IncF"}->{FASTA} = "$mlst_base/Plasmid/IncF.fasta";
+  $meta->{"IncF"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncF.txt";
+  $meta->{"IncF"}->{DELIMITER} = "_";
+
+  $meta->{"IncHI1"}->{FASTA} = "$mlst_base/Plasmid/IncHI1.fasta";
+  $meta->{"IncHI1"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncHI1.txt";
+  $meta->{"IncHI1"}->{DELIMITER} = "_";
+
+  $meta->{"IncHI2"}->{FASTA} = "$mlst_base/Plasmid/IncHI2.fasta";
+  $meta->{"IncHI2"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncHI2.txt";
+  $meta->{"IncHI2"}->{DELIMITER} = "_";
+
+  $meta->{"IncI1"}->{FASTA} = "$mlst_base/Plasmid/IncI1.fasta";
+  $meta->{"IncI1"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncI1.txt";
+  $meta->{"IncI1"}->{DELIMITER} = "_";
+
+  $meta->{"IncN"}->{FASTA} = "$mlst_base/Plasmid/IncN.fasta";
+  $meta->{"IncN"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncN.txt";
+  $meta->{"IncN"}->{DELIMITER} = "_";
+
+  foreach $i (keys %$meta) {
+    if (!-f $meta->{$i}->{FASTA} || !-f $meta->{$i}->{DEFINITIONS}) {
+      delete($meta->{$i});
+    }
+  }
 
   return $meta;
 }
