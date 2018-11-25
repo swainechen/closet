@@ -10,6 +10,7 @@ $sid = 'germs_browser';
 $user = "";
 $pass = "";
 $host = "";
+$port = 3306;
 $quiet = 0;
 $single = 0;	# if true, will consider multiline input as single sql
 GetOptions (
@@ -18,9 +19,10 @@ GetOptions (
   'single' => \$single,
   'user=s' => \$user,
   'pass=s' => \$pass,
-  'host=s' => \$host
+  'host=s' => \$host,
+  'port=i' => \$port
 );
-my $dbh = slchen::dbconnect($sid, $host, $user, $pass);
+my $dbh = slchen::dbconnect($sid, $host, $user, $pass, $port);
 if (!@ARGV || -f $ARGV[0]) {
   while (<>) {
     chomp;
