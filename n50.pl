@@ -5,25 +5,44 @@
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
 $output_table = 0;
+$contig_cutoff = 1000;
 
 GetOptions (
-  'table!' => \$output_table
+  'table!' => \$output_table,
+  'contig_cutoff=i' => \$contig_cutoff
 );
 
 $total = 0;
 $contig_num = 0;
 $large_contig_num = 0;
-$contig_cutoff = 1000;
 @length = ();
 $file = "<stdin>";
 $file = $ARGV[0] if defined $ARGV[0] && -f $ARGV[0];
+$name = "__n50_notset";
+$subtotal = 0;
 while (<>) {
   chomp;
-  next if /^>/;
-  $total += length ($_);
+  if (/^>(.*)/) {
+    if ($name ne "__n50_notset") {
+      $contig_num++;
+      $large_contig_num++ if $subtotal >= $contig_cutoff;
+      $total += $subtotal;
+      push @length, $subtotal;
+      $subtotal = 0;
+    }
+    $name = $1;
+    next;
+  }
+  if ($name eq "__n50_notset") {
+    $name = "__n50_firstcontig";
+  }
+  $subtotal += length ($_);
+}
+if ($name ne "__n50_notset") {
   $contig_num++;
-  $large_contig_num++ if length($_) >= $contig_cutoff;
-  push @length, length ($_);
+  $large_contig_num++ if $subtotal >= $contig_cutoff;
+  $total += $subtotal;
+  push @length, $subtotal;
 }
 
 @length = sort { $a <=> $b } @length;
