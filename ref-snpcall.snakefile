@@ -25,10 +25,11 @@ rule final:
         gcov=config['ACC'] + ".gcov.gz",
         lofreq=config['ACC'] + ".lofreq.gz",
         srst2=config['ACC'] + ".srst2.gz",
-        lacer=config['ACC'] + ".lacer",
-        lacerdump=config['ACC'] + ".lacer.dump.gz"
+#        lacer=config['ACC'] + ".lacer",
+#        lacerdump=config['ACC'] + ".lacer.dump.gz"
     shell:
         "{config[DB_SRST2]} {input.srst2} -mlst_database {config[SPECIES]} -source SRST2 -db;"
+        "{config[DB_POST]} -mlst_database {config[SPECIES]} -source FASTQ {config[ACC]} -db;"
         "if {config[GETFILES]} -checkonly {config[ACC]}; then rm -f `{config[GETFILES]} {config[ACC]} -delimiter \" \"`; fi;"
 
 
@@ -178,3 +179,15 @@ rule assembly:
         8
     shell:
         "{config[GERMS_WGS]} -q1 `{config[GETFILES]} {config[ACC]} -delimiter \" -q2 \"` -output_dir . -t {threads} -name {config[ACC]} && tar xvzf {config[ACC]}.tgz --strip-components=1 {config[ACC]}/{config[ACC]}.gbk;"
+
+rule fastq:
+    shell:
+        "{config[GETFILES]} {config[ACC]};"
+        "{config[IMPORT_FASTQ]} {config[ACC]} -force -db;"
+
+rule fastq_clean:
+    shell:
+        "{config[GETFILES]} {config[ACC]};"
+        "{config[IMPORT_FASTQ]} {config[ACC]} -force -db;"
+        "if {config[GETFILES]} -checkonly {config[ACC]}; then rm -f `{config[GETFILES]} {config[ACC]} -delimiter \" \"`; fi;"
+
