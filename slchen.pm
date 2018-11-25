@@ -18,16 +18,17 @@ use vars qw(%orgcode_translate);
 @EXPORT_OK = qw(make_key break_key sortu parse_list make_list isfloat isint align dnaalign paln2daln align_stripgaps aa setup_hash randomize_array to_phylip_names from_phylip_names dna_distances array_mean array_median array_mode dbconnect isintergenic opengri ns_setup ns orfupstream null_bind_param do_pars_tree do_nj_tree do_ml_tree combinations gri_boxwhisker);
 
 sub dbconnect {
-  my ($database, $host, $user, $pass) = @_;
+  my ($database, $host, $user, $pass, $port) = @_;
 
-  # default values first
+  # set default values here
   $database = '';
   $host = '';
   $user = '';
   $pass = '';
+  $port = 3306;
 
   my $dbh;
-  $dbh = DBI->connect('DBI:mysql:database='.$database.';host='.$host, $user, $pass, { LongReadLen => 100000000 });
+  $dbh = DBI->connect('DBI:mysql:database='.$database.';host='.$host.';port='.$port, $user, $pass, { LongReadLen => 100000000 });
   return $dbh;
 }
 
