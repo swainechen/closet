@@ -2,8 +2,8 @@
 
 export(blastScatter)
 export(blastScatterWindow)
+export(contigDetail)
 export(contigSummary)
-export(contig_detail)
 export(doBlast)
 export(plotDetail)
 export(stackPlot)
