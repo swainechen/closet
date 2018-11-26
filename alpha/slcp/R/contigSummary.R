@@ -37,33 +37,33 @@ contigSummary <- function(x, meta=ref_meta) {
   ir_Chrom <- IRanges(v_Chrom > 0)
   ir_Plasm <- IRanges(v_Plasm > 0)
   final <- Rle(rep("", total))
-  if (length(setdiff(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(setdiff(ir_Chrom, ir_Plasm))) {
-      s <- start(setdiff(ir_Chrom, ir_Plasm))
-      e <- end(setdiff(ir_Chrom, ir_Plasm))
+  if (length(IRanges::setdiff(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Chrom, ir_Plasm))) {
+      s <- start(IRanges::setdiff(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::setdiff(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
     }
   }
-  if (length(setdiff(ir_Plasm, ir_Chrom)) > 0) {
-    for(i in 1:length(setdiff(ir_Plasm, ir_Chrom))) {
-      s <- start(setdiff(ir_Plasm, ir_Chrom))
-      e <- end(setdiff(ir_Plasm, ir_Chrom))
+  if (length(IRanges::setdiff(ir_Plasm, ir_Chrom)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Plasm, ir_Chrom))) {
+      s <- start(IRanges::setdiff(ir_Plasm, ir_Chrom))
+      e <- end(IRanges::setdiff(ir_Plasm, ir_Chrom))
       final[s[i]:e[i]] <- "Plasmid"
     }
   }
-  if (length(intersect(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(intersect(ir_Chrom, ir_Plasm))) {
+  if (length(IRanges::intersect(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::intersect(ir_Chrom, ir_Plasm))) {
       # set these to chromosome first
       # where plasmid is higher then switch to plasmid
-      s <- start(intersect(ir_Chrom, ir_Plasm))
-      e <- end(intersect(ir_Chrom, ir_Plasm))
+      s <- start(IRanges::intersect(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::intersect(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
       final[s[i]:e[i]][v_Plasm[s[i]:e[i]] > v_Chrom[s[i]:e[i]]] <- "Plasmid"
     }
   }
-  perc_chrom <- length(which(final == "Chromosome"))/total
-  perc_plasm <- length(which(final == "Plasmid"))/total
-  perc_none <- length(which(final == ""))/total
+  perc_chrom <- length(IRanges::which(final == "Chromosome"))/total
+  perc_plasm <- length(IRanges::which(final == "Plasmid"))/total
+  perc_none <- length(IRanges::which(final == ""))/total
   best_df <- ddply(x, .(Subject), summarize, TopBitscore = max(Bitscore), TotalBitscore=sum(Bitscore), Longest = max(AlignLen*ID/100), Total = sum(AlignLen*ID/100))
   best_df$Type <- meta[best_df$Subject, "Type"]
   if(perc_chrom >= perc_plasm) {
