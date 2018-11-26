@@ -80,6 +80,6 @@ contigDetail <- function(x, meta=ref_meta) {
       final_subject[s[i]:e[i]][v_Plasm[s[i]:e[i]] > v_Chrom[s[i]:e[i]]] <- v_Plasm_Subject[s[i]:e[i]][v_Plasm[s[i]:e[i]] > v_Chrom[s[i]:e[i]]]
     }
   }
-  perc_chrom <- length(which(final == "Chromosome"))/total
+  perc_chrom <- length(IRanges::which(final == "Chromosome"))/total
   return(list(final, final_id, final_subject, paste(sep=" ", x$Query[1], x$Contig[1])))
 }
