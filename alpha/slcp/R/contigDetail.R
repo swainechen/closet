@@ -66,12 +66,12 @@ contigDetail <- function(x, meta=ref_meta) {
     }
   }
   # check the identity of the hit to chromosome and plasmid when there are both
-  if (length(intersect(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(intersect(ir_Chrom, ir_Plasm))) {
+  if (length(IRanges::intersect(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::intersect(ir_Chrom, ir_Plasm))) {
       # set these to chromosome first
       # where plasmid is higher then switch to plasmid
-      s <- start(intersect(ir_Chrom, ir_Plasm))
-      e <- end(intersect(ir_Chrom, ir_Plasm))
+      s <- start(IRanges::intersect(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::intersect(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
       final_id[s[i]:e[i]] <- v_Chrom[s[i]:e[i]]
       final_subject[s[i]:e[i]] <- v_Chrom_Subject[s[i]:e[i]]
