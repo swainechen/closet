@@ -1,10 +1,10 @@
 Package: slcp
-Title: What the Package Does (one line, title case)
+Title: Semi-Live Comparison Kit for Plasmids
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: person("Swaine", "Chen", email = "slchen@gis.a-star.edu.sg", role = c("aut", "cre"))
+Description: Provides a set of tools for calling and visualizing plasmid contigs within assemblies
 Depends: R (>= 3.4.4)
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
