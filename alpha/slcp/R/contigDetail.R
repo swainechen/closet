@@ -8,7 +8,7 @@
 #'
 #' @export
 #'
-contig_detail <- function(x, meta=ref_meta) {
+contigDetail <- function(x, meta=ref_meta) {
   # this is more for whole analysis of a chromosome
   # assume we only have one query genome and contig in the input data frame
   # expecting to get blast data, so columns should be:
@@ -45,7 +45,6 @@ contig_detail <- function(x, meta=ref_meta) {
   final <- Rle(rep("", total))
   final_id <- Rle(rep(0, total))
   final_subject <- Rle(rep("", total))
-  perc_chrom <- length(which(final == "Chromosome"))/total
   # if only a chromosomal hit, those are by definition chromosomal
   if (length(setdiff(ir_Chrom, ir_Plasm)) > 0) {
     for(i in 1:length(setdiff(ir_Chrom, ir_Plasm))) {
@@ -81,5 +80,6 @@ contig_detail <- function(x, meta=ref_meta) {
       final_subject[s[i]:e[i]][v_Plasm[s[i]:e[i]] > v_Chrom[s[i]:e[i]]] <- v_Plasm_Subject[s[i]:e[i]][v_Plasm[s[i]:e[i]] > v_Chrom[s[i]:e[i]]]
     }
   }
+  perc_chrom <- length(which(final == "Chromosome"))/total
   return(list(final, final_id, final_subject, paste(sep=" ", x$Query[1], x$Contig[1])))
 }
