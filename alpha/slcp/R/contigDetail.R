@@ -46,20 +46,20 @@ contigDetail <- function(x, meta=ref_meta) {
   final_id <- Rle(rep(0, total))
   final_subject <- Rle(rep("", total))
   # if only a chromosomal hit, those are by definition chromosomal
-  if (length(setdiff(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(setdiff(ir_Chrom, ir_Plasm))) {
-      s <- start(setdiff(ir_Chrom, ir_Plasm))
-      e <- end(setdiff(ir_Chrom, ir_Plasm))
+  if (length(IRanges::setdiff(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Chrom, ir_Plasm))) {
+      s <- start(IRanges::setdiff(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::setdiff(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
       final_id[s[i]:e[i]] <- v_Chrom[s[i]:e[i]]
       final_subject[s[i]:e[i]] <- v_Chrom_Subject[s[i]:e[i]]
     }
   }
   # if only a plasmid hit, those are by definition plasmid
-  if (length(setdiff(ir_Plasm, ir_Chrom)) > 0) {
-    for(i in 1:length(setdiff(ir_Plasm, ir_Chrom))) {
-      s <- start(setdiff(ir_Plasm, ir_Chrom))
-      e <- end(setdiff(ir_Plasm, ir_Chrom))
+  if (length(IRanges::setdiff(ir_Plasm, ir_Chrom)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Plasm, ir_Chrom))) {
+      s <- start(IRanges::setdiff(ir_Plasm, ir_Chrom))
+      e <- end(IRanges::setdiff(ir_Plasm, ir_Chrom))
       final[s[i]:e[i]] <- "Plasmid"
       final_id[s[i]:e[i]] <- v_Plasm[s[i]:e[i]]
       final_subject[s[i]:e[i]] <- v_Plasm_Subject[s[i]:e[i]]
