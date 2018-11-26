@@ -42,9 +42,9 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   ylim <- c(-height/2, length(unique(x[[3]])) * (height + sep) + id_height)
   x[[1]][x[[1]]==""] <- "None"
   totalnt = max(end(x[[1]]))
-  plasmidnt <- length(IRanges::which(x[[1]]=="Plasmid"))
-  chromosoment <- length(IRanges::which(x[[1]]=="Chromosome"))
-  nonent <- length(IRanges::which(x[[2]]==0))
+  plasmidnt <- length(which(x[[1]]=="Plasmid"))
+  chromosoment <- length(which(x[[1]]=="Chromosome"))
+  nonent <- length(which(x[[2]]==0))
   hue <- c("Plasmid" = 0, "Chromosome" = 0.5)
   plot.window(xlim, ylim)
   for(i in 1:length(segments)) {

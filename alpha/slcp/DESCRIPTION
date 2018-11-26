@@ -3,8 +3,8 @@ Title: Semi-Live Comparison Kit for Plasmids
 Version: 0.0.0.9000
 Authors@R: person("Swaine", "Chen", email = "slchen@gis.a-star.edu.sg", role = c("aut", "cre"))
 Description: Provides a set of tools for calling and visualizing plasmid contigs within assemblies
-Depends: R (>= 3.4.4)
-Imports: IRanges, Biostrings
+Depends: R (>= 3.4.4), IRanges
+Imports: Biostrings
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
