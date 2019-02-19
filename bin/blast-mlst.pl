@@ -386,6 +386,10 @@ sub set_data {
   $meta->{"IncN"}->{DEFINITIONS} = "$mlst_base/Plasmid/IncN.txt";
   $meta->{"IncN"}->{DELIMITER} = "_";
 
+  $meta->{"Bpertussis"}->{FASTA} = "$mlst_base/Bordetella.fasta";
+  $meta->{"Bpertussis"}->{DEFINITIONS} = "$mlst_base/bordetella.txt";
+  $meta->{"Bpertussis"}->{DELIMITER} = "_";
+
   foreach $i (keys %$meta) {
     if (!-f $meta->{$i}->{FASTA} || !-f $meta->{$i}->{DEFINITIONS}) {
       delete($meta->{$i});
