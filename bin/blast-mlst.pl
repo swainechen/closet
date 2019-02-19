@@ -7,12 +7,16 @@
 # set 80% of allele must be covered, then look for highest % identity
 #
 use XML::Simple;
+use FindBin;
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
-my $mlst_fasta = "/home/slchen/Documents/Projects/SRST2/MLST/Escherichia_coli#1.fasta";
-my $mlst_def = "/home/slchen/Documents/Projects/SRST2/MLST/ecoli.txt";
-my $delimiter = "-";
 
+# We expect most files to be in somewhere like /usr/local/lib/SRST2/MLST
+# This is where we will look in the procedure set_data at the bottom
+
+my $mlst_fasta = "";
+my $mlst_def = "";
+my $delimiter = "-";
 my $species = "";
 my $meta = &set_data;
 
@@ -296,7 +300,7 @@ if ($st) {
 
 sub set_data {
   my $meta;
-  my $mlst_base = "/mnt/genomeDB/SRST2/MLST";
+  my $mlst_base = $FindBin::Bin . "/../lib/SRST2/MLST";
 
   $meta->{"Abaumannii"}->{FASTA} = "$mlst_base/Acinetobacter_baumannii#1.fasta";
   $meta->{"Abaumannii"}->{DEFINITIONS} = "$mlst_base/abaumannii.txt";

@@ -9,9 +9,14 @@
 #
 use XML::Simple;
 use File::Basename;
+use FindBin;
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
-my $fasta = "/home/slchen/Documents/Projects/SRST2/Ecoli-srst2.fasta";
+
+# We expect most files to be in somewhere like /usr/local/lib/SRST2
+# This is where we will look in the procedure set_species_data at the bottom
+
+my $fasta = "";
 my $min_coverage = 0.9;	# SRST2 defaults
 my $min_identity = 0.9;	# SRST2 defaults
 my $out_name = "";
@@ -203,7 +208,7 @@ if ($report_alleles) {
 
 sub set_species_data {
   my $meta;
-  my $base = "/mnt/genomeDB/SRST2";
+  my $base = $FindBin::Bin . "/../lib/SRST2";
   my $i;
   my $file;
   my @fasta;
