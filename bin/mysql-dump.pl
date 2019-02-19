@@ -6,7 +6,7 @@ use slchen;
 use DBI;
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
-$sid = 'germs_browser';
+$sid = '';
 $user = "";
 $pass = "";
 $host = "";
