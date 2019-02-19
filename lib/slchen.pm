@@ -21,11 +21,11 @@ sub dbconnect {
   my ($database, $host, $user, $pass, $port) = @_;
 
   # set default values here
-  $database = '';
-  $host = '';
-  $user = '';
-  $pass = '';
-  $port = 3306;
+  $database = '' if (!defined $database || $database eq "");
+  $host = '' if (!defined $host || $host eq "");
+  $user = '' if (!defined $user || $user eq "");
+  $pass = '' if (!defined $pass || $pass eq "");
+  $port = 3306 if (!defined $port || $port eq "");
 
   my $dbh;
   $dbh = DBI->connect('DBI:mysql:database='.$database.';host='.$host.';port='.$port, $user, $pass, { LongReadLen => 100000000 });
@@ -1944,7 +1944,7 @@ sub orgcode_translate {
   my @return = @_;
   if (!scalar keys(%orgcode_translate)) {
     eval "use Orgmap";
-    my $orgmap = "$Orgmap::LIBPATH/org-map";
+    my $orgmap = $Orgmap::LIBPATH . "/org-map";
     my @f;
     my @g;
     my @h;
