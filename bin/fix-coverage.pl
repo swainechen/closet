@@ -20,14 +20,28 @@ my $chrom = ();
 my $chrom_counter = 1;
 my $max_name_length = 10;
 my @map = ();
+my $print_help = 0;
 
 GetOptions (
   "datadir=s" => \$data_dir,
   "verbose" => \$verbose,
   "remap!" => \$do_remap,
   "number_chromosomes!" => \$number_chromosomes,
-  "gcov!" => \$do_gcov
+  "gcov!" => \$do_gcov,
+  "mincov=i" => \$min_cov,
+  "help" => \$print_help
 );
+
+if ($print_help) {
+  print "Usage: $0 <vcf file> [ -datadir <dir> ] [ -mincov <int> ] [ -gcov | -nogcov ] [ -remap | -noremap ] [ -number_chromosomes | -nonumber_chromosomes ] [ -verbose ]\n";
+  print "  For each sample in a multisample vcf file, replaces ./. with 0/0 if there is coverage at that position (determined by -mincov, default 10).\n";
+  print "  Requires a gcov file (gzipped or not) with the same filename as the sample name in the vcf file.\n";
+  print "  The vcf file must be uncompressed.\n";
+  print "  Will try to look for gcov files in -datadir (default is .) unless -nogcov is set (i.e. if you only want to just remap names).\n";
+  print "  Will fix sample names (remap) by default if they are too long (>10 characters) so they don't get truncated in any phylip file conversions - set -noremap if you don't want this to happen (this is useful if you've split an original large vcf file - don't remap it until you recombine it back together).\n";
+  print "  -number_chromosomes changes all chromsome names to numbers, will print out mapping at the end, this is enabled by default.\n";
+  exit;
+}
 
 while (<>) {
   if (/^##/) {
