@@ -6,11 +6,12 @@ use slchen;
 use DBI;
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
+# enter default database info here
 $sid = '';
 $user = "";
 $pass = "";
 $host = "";
-$port = 3306;
+$port = "";	# usually an integer, default MySQL is 3306
 $quiet = 0;
 $single = 0;	# if true, will consider multiline input as single sql
 GetOptions (
