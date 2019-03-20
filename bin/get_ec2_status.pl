@@ -1,21 +1,46 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
+use warnings;
+use strict;
 use JSON;
 use Data::Dumper;
+use Getopt::Long;
+&Getopt::Long::Configure("pass_through");
 
-$json = `aws --profile default ec2 describe-instances`;
-$parsed = JSON::decode_json($json);
+my $profile = "default";
+GetOptions (
+  'profile=s' => \$profile
+);
+
+my $json = `aws --profile $profile ec2 describe-instances`;
+my $parsed = JSON::decode_json($json);
+my $i;
+my $j;
+my $k;
+my $r;
+my $AMI;
+my $instance_ID;
+my $instance_type;
+my $launchtime;
+my $name;
+my $pub_IP;
+my $vpc_ID;
+my $state;
+my $zone;
+my $placement_ref;
+my $state_ref;
+my $tag_ref;
+my $inst_array;
+my $res_array = $parsed->{Reservations};
+my @out = ();
 
 # output everything as on EC2 console
-@out = ();
-$res_array = $parsed->{Reservations};
 foreach $i (0..$#{$res_array}) {
   # now drop to instances, index 0 to get data
   $inst_array = $parsed->{Reservations}->[$i]->{Instances};
   foreach $j (0..$#{$inst_array}) {
     $r = $inst_array->[$j];
     # now collect info
-    $vpc_ID = "";
     $vpc_ID = $r->{VpcId};
     if (defined $r->{PublicIpAddress}) {
       $pub_IP = $r->{PublicIpAddress};
