@@ -12,7 +12,7 @@
 # This doesn't deal well with multiple contigs on the subject side
 # can pull in coordinate plots as in how SVRE does it
 
-subject_detail <- function(x) {
+subjectDetail <- function(x) {
   # switch the place of subject and query - i.e. now subject based
   # assume we only have one subject in the input data frame
   # expecting to get blast data, so columns should be:
