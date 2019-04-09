@@ -5,7 +5,7 @@ use strict;
 use Getopt::Long;
 &Getopt::Long::Configure("pass_through");
 use File::Temp;
-use LWP::Simple;
+use File::Fetch;
 
 my $help = 0;
 my $proks = "";
@@ -36,6 +36,7 @@ my @g;
 my @h;
 my $i;
 my @out;
+my $fetcher;
 
 GetOptions (
   'help' => \$help,
@@ -60,7 +61,8 @@ if (-f $output_fna) {
 my $return;
 if ($proks eq "" || ! -f $proks) {
   $proks = "$tempdir/prokaryotes.txt";
-  $return = getstore("ftp://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt", $proks);
+  $fetcher = File::Fetch->new(uri => "ftp://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt");
+  $proks = $fetcher->fetch( to => $tempdir );
 }
 
 open O, ">$output_fna";
@@ -126,7 +128,9 @@ while (<P>) {
     $fna = "$tempdir/$h[$#h]_genomic.fna.gz";
     push @out, $f[$fields->{"Status"}];
     push @out, $url;
-    $return = getstore($url, $fna);
+    
+    $fetcher = File::Fetch->new(uri => $url);
+    $fna = $fetcher->fetch(to => $tempdir);
     if ($fna =~ /\.gz$/) {
       open F, "zcat $fna |";
     } else {
