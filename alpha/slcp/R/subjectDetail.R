@@ -51,34 +51,34 @@ subjectDetail <- function(x) {
   final <- Rle(rep("", total))
   final_id <- Rle(rep(0, total))
   final_query <- Rle(rep("", total))
-  perc_chrom <- length(which(final == "Chromosome"))/total
+  perc_chrom <- length(IRanges::which(final == "Chromosome"))/total
   # if only a chromosomal hit, those are by definition chromosomal
-  if (length(setdiff(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(setdiff(ir_Chrom, ir_Plasm))) {
-      s <- start(setdiff(ir_Chrom, ir_Plasm))
-      e <- end(setdiff(ir_Chrom, ir_Plasm))
+  if (length(IRanges::setdiff(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Chrom, ir_Plasm))) {
+      s <- start(IRanges::setdiff(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::setdiff(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
       final_id[s[i]:e[i]] <- v_Chrom[s[i]:e[i]]
       final_query[s[i]:e[i]] <- v_Chrom_Query[s[i]:e[i]]
     }
   }
   # if only a plasmid hit, those are by definition plasmid
-  if (length(setdiff(ir_Plasm, ir_Chrom)) > 0) {
-    for(i in 1:length(setdiff(ir_Plasm, ir_Chrom))) {
-      s <- start(setdiff(ir_Plasm, ir_Chrom))
-      e <- end(setdiff(ir_Plasm, ir_Chrom))
+  if (length(IRanges::setdiff(ir_Plasm, ir_Chrom)) > 0) {
+    for(i in 1:length(IRanges::setdiff(ir_Plasm, ir_Chrom))) {
+      s <- start(IRanges::setdiff(ir_Plasm, ir_Chrom))
+      e <- end(IRanges::setdiff(ir_Plasm, ir_Chrom))
       final[s[i]:e[i]] <- "Plasmid"
       final_id[s[i]:e[i]] <- v_Plasm[s[i]:e[i]]
       final_query[s[i]:e[i]] <- v_Plasm_Query[s[i]:e[i]]
     }
   }
   # check the identity of the hit to chromosome and plasmid when there are both
-  if (length(intersect(ir_Chrom, ir_Plasm)) > 0) {
-    for(i in 1:length(intersect(ir_Chrom, ir_Plasm))) {
+  if (length(IRanges::intersect(ir_Chrom, ir_Plasm)) > 0) {
+    for(i in 1:length(IRanges::intersect(ir_Chrom, ir_Plasm))) {
       # set these to chromosome first
       # where plasmid is higher then switch to plasmid
-      s <- start(intersect(ir_Chrom, ir_Plasm))
-      e <- end(intersect(ir_Chrom, ir_Plasm))
+      s <- start(IRanges::intersect(ir_Chrom, ir_Plasm))
+      e <- end(IRanges::intersect(ir_Chrom, ir_Plasm))
       final[s[i]:e[i]] <- "Chromosome"
       final_id[s[i]:e[i]] <- v_Chrom[s[i]:e[i]]
       final_query[s[i]:e[i]] <- v_Chrom_Query[s[i]:e[i]]
