@@ -103,7 +103,7 @@ print join ("\n", @out), "\n";
 #   ImageId - scalar
 #   InstanceId - scalar
 #   InstanceType - scalar
-#   KeyName - scalar (slchen-lab-0)
+#   KeyName - scalar
 #   LaunchTime - scalar
 #   Monitoring - hash (State => disabled)
 #   NetworkInterfaces - array, each element then a hash
