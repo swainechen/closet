@@ -30,7 +30,6 @@ $programs->{OPERA_preprocess} = which 'preprocess_reads.pl';
 $programs->{prodigal} = which 'prodigal';
 $programs->{fastqc} = which 'fastqc';
 $programs->{kraken2} = which 'kraken2';
-$programs->{kraken2} = which 'kraken';
 opendir VELVET, "/usr/local/src";
 while (my $v = readdir VELVET) {
   if (-d "/usr/local/src/$v" && $v =~ /velvet/ &&
