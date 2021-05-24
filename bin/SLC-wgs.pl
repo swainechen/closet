@@ -547,8 +547,8 @@ sub species_kraken2 {
   $command .= " --threads " . set_option("threads");
   $command .= " --db " . set_option("KRAKEN2", "DB");
   $command .= " --report $expected_file";
-  $kraken_ds1_filename = $q1 . "-" . set_option("MAXREADS") . "_" . set_option("SEED") . ".fastq";
-  $kraken_ds2_filename = $q2 . "-" . set_option("MAXREADS") . "_" . set_option("SEED") . ".fastq";
+  $kraken_ds1_filename = $q1 . "-" . $n . "_" . set_option("SEED") . ".fastq";
+  $kraken_ds2_filename = $q2 . "-" . $n . "_" . set_option("SEED") . ".fastq";
   $kraken_dscommand = $programs->{seqtk} . " sample -s " . set_option("SEED") . " $q1 " . $n . " > $kraken_ds1_filename";
   &shortlog($kraken_dscommand);
   $output = `$kraken_dscommand 2>&1`;
