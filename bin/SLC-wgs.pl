@@ -25,7 +25,7 @@ my $bin_dir = "/usr/local/bin/";
 my $programs;
 my $original_commandline = join (" ", $0, @ARGV);
 my @arguments = @ARGV;
-$programs->{OPERA} = which 'opera';
+$programs->{OPERA} = which 'OPERA-LG';
 $programs->{OPERA_preprocess} = which 'preprocess_reads.pl';
 $programs->{prodigal} = which 'prodigal';
 $programs->{fastqc} = which 'fastqc';
