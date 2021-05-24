@@ -1320,10 +1320,10 @@ Common options:
                                            always want to specify this
   -tempdir                           --  temporary directory to use -
                                            default $temp_base
-  -assembler <velvetoptimizer|spades|soap>
+  -assembler <velvetoptimizer|spades>
                                      --  which assembler to use - default $default_options->{ASSEMBLER}
-  -scaffolder <opera|soap>           --  which scaffolder - default $default_options->{SCAFFOLDER}
-  -annotator <prokka|old>            --  how to annotate - default $default_options->{ANNOTATOR}
+  -scaffolder <opera>                --  which scaffolder - default $default_options->{SCAFFOLDER}
+  -annotator <prokka>                --  how to annotate - default $default_options->{ANNOTATOR}
   -reference <fna file>              --  force a certain reference sequence -
                                            this assumes NCBI refseq files are
                                            available - ptt, faa, ffn
