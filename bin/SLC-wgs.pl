@@ -232,7 +232,7 @@ sub assemble_SPAdes {
   }
   $command .= " -t " . set_option("threads");
   $command .= " -m " . set_option("MEMORYINGB");
-  $command .= " --cov-cutoff auto --careful -o $tempdir/spades_working";
+  $command .= " --cov-cutoff auto --isolate -o $tempdir/spades_working";
   &shortlog($command);
   my $output = `$command 2>&1`;
   &log($output);
