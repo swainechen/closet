@@ -35,8 +35,8 @@ while (my $v = readdir VELVET) {
   if (-d "/usr/local/src/$v" && $v =~ /velvet/ &&
       -f "/usr/local/src/$v/contrib/shuffleSequences_fasta/shuffleSequences_fastq.pl" &&
       -f "/usr/local/src/$v/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl") {
-    $programs->{VelvetShuffle} = "/usr/local/src/velvet/contrib/shuffleSequences_fasta/shuffleSequences_fastq.pl";
-    $programs->{VelvetOptimiser} = "/usr/local/src/velvet/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl";
+    $programs->{VelvetShuffle} = "/usr/local/src/$v/contrib/shuffleSequences_fasta/shuffleSequences_fastq.pl";
+    $programs->{VelvetOptimiser} = "/usr/local/src/$v/contrib/VelvetOptimiser-2.2.4/VelvetOptimiser.pl";
     last;
   }
 }
