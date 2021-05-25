@@ -459,7 +459,7 @@ sub scaffold_OPERA {
   my $opera_output_dir = "$tempdir/OPERA";
   my $mapper = set_option("OPERA", "mapper");
   my $expected_file = "$tempdir/$final_sample_name.gapFilled";
-  my $map_file = "$tempdir/$final_sample_name.read-on-contig";
+  my $map_file = "$tempdir/$final_sample_name.read-on-contig.bam";
 
   # OPERA requires samtools 0.1.19 or below (see wiki)
   # look for these here
