@@ -460,12 +460,27 @@ sub scaffold_OPERA {
   my $mapper = set_option("OPERA", "mapper");
   my $expected_file = "$tempdir/$final_sample_name.gapFilled";
   my $map_file = "$tempdir/$final_sample_name.read-on-contig";
+
+  # OPERA requires samtools 0.1.19 or below (see wiki)
+  # look for these here
+  my $samtools_dir = "";
+  if (-f "/usr/local/src/samtools-0.1.19/samtools") {
+    $samtools_dir = "/usr/local/src/samtools-0.1.19";
+  } elsif (-f "/usr/local/src/samtools-0.1.18/samtools") {
+    $samtools_dir = "/usr/local/src/samtools-0.1.18";
+  } elsif (-f "/usr/local/src/samtools-0.1.17/samtools") {
+    $samtools_dir = "/usr/local/src/samtools-0.1.17";
+  }
+
   if ($q1 eq $q2) {
     File::Copy::copy($contigs, $expected_file);
     &shortlog("q1 and q2 files the same.  Skipping scaffolding.");
   } else {
     # OPERA makes an assumption about where perl is that's not true for us
-    my $command = "perl $programs->{OPERA_preprocess} $contigs $q1 $q2 $map_file $mapper";
+    my $command = "perl $programs->{OPERA_preprocess} --contig $contigs --illumina-read1 $q1 --illumina-read2 $q2 --out $map_file --map-tool $mapper";
+    if ($samtools_dir ne "") {
+      $command .= " --samtools-dir $samtools_dir";
+    }
     &shortlog($command);
     my $output = `$command 2>&1`;
     # OPERA's preprocess leaves this read.sai file
@@ -475,7 +490,7 @@ sub scaffold_OPERA {
       &log("Couldn't find mapping file $map_file after ".(caller(0))[3]." run");
       return(0);
     }
-    $command = "$programs->{OPERA} $contigs $map_file $opera_output_dir";
+    $command = "$programs->{OPERA} $contigs $map_file $opera_output_dir $samtools_dir";
     &shortlog($command);
     $output = `$command 2>&1`;
     &log($output);
