@@ -1016,12 +1016,10 @@ sub do_single_library {
     if (!-f $assembly) {
       $assembly = $contigs;
       &shortlog("Some problem with scaffolder; continuing with contigs.");
-    } elsif (uc(set_option("SCAFFOLDER")) eq "OPERA" && uc(set_option("ASSEMBLER")) ne "SPADES") {
+    } elsif (uc(set_option("SCAFFOLDER")) eq "OPERA" && uc(set_option("ASSEMBLER")) eq "VELVETOPTIMIZER" || uc(set_option("ASSEMBLER")) eq "VELVETOPTIMISER") {
       &log("Running Finishing\n");
       my $finished = "";
-      if (uc(set_option("ASSEMBLER")) eq "VELVETOPTIMIZER" || uc(set_option("ASSEMBLER")) eq "VELVETOPTIMISER") {
-        $finished = finish_FinIS("$tempdir/velvetoptimiser", "$tempdir/OPERA/scaffolds.scaf", "$tempdir/FinIS");
-      }
+      $finished = finish_FinIS("$tempdir/velvetoptimiser", "$tempdir/OPERA/scaffolds.scaf", "$tempdir/FinIS");
       if (-f $finished) {
         $assembly = $finished;
         $final_information .= "Finishing: FinIS\n";
@@ -1289,38 +1287,36 @@ sub print_usage {
   print <<__USAGE__;
 Usage example:
 ---------------
-   SLC-wgs.pl -q1 <fastq file> -q2 <fastq file> -name <output file name> -output_dir <output directory> -tempdir <temp directory>
+   $name -q1 <fastq file> -q2 <fastq file> -name <output file name> -output_dir <output directory> -tempdir <temp directory>
 
 This will give you a file named <output file name>.tgz in the directory <output directory>.  If you choose velvetoptimizer and opera, it will run FinIS for you also.
 
 Common options:
 ---------------
-  -output_dir <dir>                  --  where output files go - you probably
-                                           always want to specify this
-  -tempdir                           --  temporary directory to use -
-                                           default $temp_base
-  -assembler <velvetoptimizer|spades>
-                                     --  which assembler to use - default $default_options->{ASSEMBLER}
-  -scaffolder <opera>                --  which scaffolder - default $default_options->{SCAFFOLDER}
-  -annotator <prokka>                --  how to annotate - default $default_options->{ANNOTATOR}
-  -reference <fna file>              --  force a certain reference sequence -
-                                           this assumes NCBI refseq files are
-                                           available - ptt, faa, ffn
-  -t <threads>                       --  number of CPUs to use - default $default_options->{threads}
-  -memory <int>                      --  memory to specify (in GB) - default $default_options->{MEMORYINGB}
-  -contig_min <int>                  --  contig minimum cutoff - default $default_options->{contig_min}
-  -cleanup|nocleanup                 --  whether to leave intermediate files -
-                                           default cleanup
-  -qc|noqc                           --  whether to run FastQC
-  -maxreads                          --  max number of reads to use for assembly
-                                           default $default_options->{MAXREADS}
-                                           if set to 0, then use everything
-  -seed                              --  seed used for seqtk to downsample if
-                                           we need to use fewer reads
-                                           default $default_options->{SEED}
-  -species <species>                 --  If set, won't rerun Kraken 2 to get a
-                                           species identification
-                                           default $default_options->{KRAKEN2}->{classification} - meaning run Kraken
+  -output_dir <dir>     --  where output files go - you probably always want
+                              to specify this
+  -tempdir              --  temporary directory to use -
+                              default $temp_base
+  -assembler <velvetoptimizer|spades|skesa>
+                        --  which assembler to use - default $default_options->{ASSEMBLER}
+  -scaffolder <opera>   --  which scaffolder - default $default_options->{SCAFFOLDER}
+  -annotator <prokka>   --  how to annotate - default $default_options->{ANNOTATOR}
+  -reference <fna file> --  force a certain reference sequence - this assumes
+                              NCBI refseq files are available - ptt, faa, ffn
+  -t <threads>          --  number of CPUs to use - default $default_options->{threads}
+  -memory <int>         --  memory to specify (in GB) - default $default_options->{MEMORYINGB}
+  -contig_min <int>     --  contig minimum cutoff - default $default_options->{contig_min}
+  -cleanup|nocleanup    --  whether to keep intermediate files - default cleanup
+  -qc|noqc              --  whether to run FastQC (default -noqc)
+  -maxreads             --  max number of reads to use for assembly -
+                              default $default_options->{MAXREADS}
+                              if set to 0, then use everything
+  -seed                 --  seed used for seqtk to downsample if we need to
+                              use fewer reads
+                              default $default_options->{SEED}
+  -species <species>    --  If set, won't rerun Kraken 2 to get a species
+                              identification
+                              default $default_options->{KRAKEN2}->{classification} - meaning run Kraken 2
 
 Advanced options:
 -----------------------------------
