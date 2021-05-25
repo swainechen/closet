@@ -64,6 +64,7 @@ my $temp_base = "/tmp";
 my $output_dir = "/tmp";
 my @output_whitelist = (
   "assembly",
+  "err",
   "gbk",
   "gff",
   "faa",
@@ -83,9 +84,10 @@ $default_options->{ASSEMBLER} = "velvetoptimizer";
 $default_options->{SCAFFOLDER} = "opera";
 $default_options->{OPERA}->{mapper} = "bwa";
 $default_options->{contig_min} = 500;
-$default_options->{ANNOTATOR} = "prokka";	# versus "old"
+$default_options->{ANNOTATOR} = "prokka";
 $default_options->{MAXREADS} = 5000000;
 $default_options->{MEMORYINGB} = `free --giga | grep Mem | awk '{print \$2}'`;
+chomp($default_options->{MEMORYINGB});
 if (!$default_options->{MEMORYINGB}) { $default_options->{MEMORYINGB} = 2; }
 $default_options->{SEED} = 11;
 $default_options->{KRAKEN2}->{reads} = 100000;
