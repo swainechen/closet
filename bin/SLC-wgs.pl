@@ -16,6 +16,7 @@ use File::Spec;
 use File::Copy;
 use File::Path;
 use File::Which("which");
+use Sys::MemInfo;
 use Bio::SeqIO;
 use Cwd;
 use JSON;
@@ -23,13 +24,23 @@ use JSON;
 # programs we need
 my $bin_dir = "/usr/local/bin/";
 my $programs;
+my $ex;
 my $original_commandline = join (" ", $0, @ARGV);
 my @arguments = @ARGV;
-$programs->{OPERA} = which 'OPERA-LG';
-$programs->{OPERA_preprocess} = which 'preprocess_reads.pl';
-$programs->{prodigal} = which 'prodigal';
-$programs->{fastqc} = which 'fastqc';
-$programs->{kraken2} = which 'kraken2';
+# required programs first
+$programs->{prokka} = which 'prokka';
+$programs->{seqtk} = which 'seqtk';
+foreach $ex (keys %$programs) {
+  if (!defined $programs->{$ex} && !-f $programs->{$ex}) {
+    print "Can't find required program/library $ex, expected at $programs->{$ex}.  Exiting...\n";
+    die;
+  }
+}
+# we need at least one assembler
+my @assemblers = qw(skesa spades VelvetOptimiser.pl);
+my $have_assembler = 0;
+$programs->{skesa} = which 'skesa';
+$programs->{spades} = which 'spades.py';
 opendir VELVET, "/usr/local/src";
 while (my $v = readdir VELVET) {
   if (-d "/usr/local/src/$v" && $v =~ /velvet/ &&
@@ -42,16 +53,22 @@ while (my $v = readdir VELVET) {
 }
 closedir VELVET;
 $programs->{velvetg} = which 'velvetg';
-$programs->{FinIS} = which 'FinIS';
-$programs->{spades} = which 'spades.py';
-$programs->{prokka} = which 'prokka';
-$programs->{seqtk} = which 'seqtk';
-foreach my $ex (keys %$programs) {
-  if (!-f $programs->{$ex}) {
-    print "Can't find required program/library $ex, expected at $programs->{$ex}.  Exiting...\n";
-    die;
+foreach $ex (@assemblers) {
+  if (defined $programs->{$ex} && -f $programs->{$ex}) {
+    $have_assembler = 1;
+    last;
   }
 }
+if (!$have_assembler) {
+  print "Can't find any assembler! Exiting...\n";
+  die;
+}
+# optional programs
+$programs->{kraken2} = which 'kraken2';
+$programs->{fastqc} = which 'fastqc';
+$programs->{OPERA} = which 'OPERA-LG';
+$programs->{OPERA_preprocess} = which 'preprocess_reads.pl';
+$programs->{FinIS} = which 'FinIS';
 
 # parameters
 my $tempdir;
@@ -65,11 +82,11 @@ my $output_dir = "/tmp";
 my @output_whitelist = (
   "assembly",
   "err",
-  "gbk",
-  "gff",
   "faa",
   "ffn",
-  "fna"
+  "fna",
+  "gbk",
+  "gff"
 );
 
 # These option hashes are going to be global...
@@ -86,9 +103,18 @@ $default_options->{OPERA}->{mapper} = "bwa";
 $default_options->{contig_min} = 500;
 $default_options->{ANNOTATOR} = "prokka";
 $default_options->{MAXREADS} = 5000000;
-$default_options->{MEMORYINGB} = `free --giga | grep Mem | awk '{print \$2}'`;
+$default_options->{MEMORYINGB} = int(Sys::MemInfo::totalmem()/1024/1024/1024);
 chomp($default_options->{MEMORYINGB});
-if (!$default_options->{MEMORYINGB}) { $default_options->{MEMORYINGB} = 2; }
+if (!$default_options->{MEMORYINGB}) {
+  # this is just a guess for what a "reasonable" system should have
+  $default_options->{MEMORYINGB} = 2;
+} elsif ($default_options->{MEMORYINGB} >= 6) {
+  $default_options->{MEMORYINGB} -= 2;
+} elsif ($default_options->{MEMORYINGB} < 6) {
+  $default_options->{MEMORYINGB} -= 1;
+} if ($default_options->{MEMORYINGB} < 2) {
+  $default_options->{MEMORYINGB} = 1;
+}
 $default_options->{SEED} = 11;
 $default_options->{KRAKEN2}->{reads} = 100000;
 $default_options->{KRAKEN2}->{DB} = "/usr/local/lib/Kraken2/minikraken2_v2_8GB_201904_UPDATE";
@@ -221,6 +247,38 @@ sub clean_final_name {
     $name = "";
   }
   return ($name);
+}
+
+sub assemble_skesa {
+  # we need fastq sequences
+  my ($q1, $q2) = @_;
+  my $tempdir = set_option("tempdir");
+  my $expected_file = "$tempdir/$final_sample_name.skesa.fasta";
+  my $command = "$programs->{skesa}";
+  my @out;
+  my $in;
+  my $head;
+  my $s;
+  if ($q1 eq $q2) {
+    # single-end
+    $command .= " --reads $q1";
+  } else {
+    $command .= " --reads $q1,$q2";
+  }
+  $command .= " --cores " . set_option("threads");
+  $command .= " --memory " . set_option("MEMORYINGB");
+  $command .= " --min_contig ". set_option("contig_min");
+  $command .= " > $expected_file";
+  &shortlog($command);
+  my $output = `$command 2>&1`;
+  &log($output);
+  chdir($tempdir);
+  if (-f $expected_file) {
+    return($expected_file);
+  } else {
+    &log("Couldn't find $expected_file after ".(caller(0))[3].", SPAdes run");
+    return (0);
+  }
 }
 
 sub assemble_SPAdes {
@@ -677,7 +735,7 @@ sub annotate_prokka {
   my ($assembly, $prefix, $refspecies) = @_;
   my $genus;
   my $species;
-  my @wanted = qw(faa ffn fna gbk gff);
+  my @wanted = qw(err faa ffn fna gbk gff);
   my $outdir = "$tempdir/prokka";
   my $species_flag;
   my $command;
@@ -737,102 +795,6 @@ sub annotate_prokka {
     File::Path::remove_tree($outdir);
   }
   return($error);
-}
-
-sub gene_prodigal {
-  my ($assembly, $prefix) = @_;
-  my $prodigal_temp;
-  my $seq;
-  my $out;
-  my $sequence;
-  my $annotation;
-  my @data;
-  my @f;
-  my $name;
-  my $locus;
-  my $gbk;
-  my $hdr;
-  my $s;
-  my $found_origin;
-  my $expected_file = "$prefix.prodigal";
-  my $command = "$programs->{prodigal} -i $assembly -m -o $expected_file -a $prefix.faa -d $prefix.ffn";
-  &shortlog($command);
-  my $output = `$command 2>&1`;
-  &log($output);
-
-  if (-f $expected_file) {
-    # combine the sequence and annotation into a .gbk file that can actually
-    # be imported into programs like VectorNTI
-    $gbk = $expected_file;
-    $expected_file = "$prefix.gbk";
-    $prodigal_temp = "$tempdir/prodigal.tempfile";
-    $seq = Bio::SeqIO->new(-file=>$assembly);
-    $out = Bio::SeqIO->new(-file=>">$prodigal_temp",-format=>"genbank");
-    while ($s = $seq->next_seq) {
-      $out->write_seq($s)
-    }
-    $sequence = ();
-    $annotation = ();
-
-    open PRODIGAL, $prodigal_temp;
-    @data = ();
-    $found_origin = 0;
-    while (<PRODIGAL>) {
-      if (/^LOCUS/) {
-        @f = split /\s+/, $_;
-        $name = $f[1];
-        @data = ();
-        $found_origin = 0;
-        $locus->{$name} = $_;
-        next;
-      }
-      $found_origin = 1 if /^ORIGIN/;
-      next if !$found_origin;
-      push @data, $_;
-      if (/^\/\//) {
-        $sequence->{$name} = join ("", @data);
-        $name = "";
-        next;
-      }
-    }
-    close PRODIGAL;
-    unlink $prodigal_temp;
-
-    open PRODIGAL, $gbk;
-    while (<PRODIGAL>) {
-      if (/^DEFINITION/) {
-        /seqhdr="(.*?)"/;
-        $hdr = $1;
-        @f = split /\s+/, $hdr;
-        $name = $f[0];
-        @data = ();
-      }
-      if (/^\/\//) {
-        $annotation->{$name} = join ("", @data);
-        $name = "";
-        next;
-      }
-      push @data, $_;
-    }
-    close PRODIGAL;
-    
-    open PRODIGAL, ">$expected_file";
-    foreach $name (keys %$locus) {
-      print PRODIGAL $locus->{$name};
-      if (defined $annotation->{$name}) {
-        print PRODIGAL $annotation->{$name};
-      } else {
-        print PRODIGAL "FEATURES             Location/Qualifiers\n";
-      }
-      print PRODIGAL $sequence->{$name};
-    }
-    close PRODIGAL;
-
-    return ($expected_file);
-  } else {
-    &log("Couldn't find $expected_file after ".(caller(0))[3]." run");
-    return (0);
-  }
 }
 
 sub join_assembly {
@@ -1029,8 +991,8 @@ sub do_single_library {
     } else {
       $final_information .= "Assembly: SPAdes\n";
     }
-  } else {
-    # some other assembly maybe - like skesa
+  } elsif (uc(set_option("ASSEMBLER")) eq "SKESA") {
+    $contigs = assemble_skesa($q1, $q2);
   }
   $contig_stats = assembly_stats($contigs, set_option("contig_min"));
   &shortlog("\n----- Contig stats for initial assembly -----\n$contig_stats->{text}\n-----");
