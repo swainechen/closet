@@ -1147,11 +1147,11 @@ sub post_process {
       }
     }
   }
-  &log("tar cvzf $output_dir/$final_sample_name.tgz $final_sample_name --exclude=*_fastq.txt");
+  &log("tar cvzf $output_dir/$final_sample_name.tgz $final_sample_name");
   close LOG;
   close SHORTLOG;
   chdir($tempparent);
-  `tar cvzf $output_dir/$final_sample_name.tgz $final_sample_name --exclude=*_fastq.txt`;
+  `tar cvzf $output_dir/$final_sample_name.tgz $final_sample_name`;
   if (-f "$output_dir/$final_sample_name.tgz" && -s "$output_dir/$final_sample_name.tgz") {
     print STDERR "FINISHED Final output is in $output_dir/$final_sample_name.tgz\n";
     # we don't shortlog here because the file is closed
