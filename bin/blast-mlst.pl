@@ -322,8 +322,8 @@ sub set_data {
   $meta->{"Kpneumoniae"}->{DEFINITIONS} = "$mlst_base/kpneumoniae.txt";
   $meta->{"Kpneumoniae"}->{DELIMITER} = "_";
 
-  $meta->{"Spneumoniae"}->{FASTA} = "$mlst_base/Klebsiella_pneumoniae.fasta";
-  $meta->{"Spneumoniae"}->{DEFINITIONS} = "$mlst_base/kpneumoniae.txt";
+  $meta->{"Spneumoniae"}->{FASTA} = "$mlst_base/Streptococcus_pneumoniae.fasta";
+  $meta->{"Spneumoniae"}->{DEFINITIONS} = "$mlst_base/spneumoniae.txt";
   $meta->{"Spneumoniae"}->{DELIMITER} = "_";
 
   $meta->{"Ccoli"}->{FASTA} = "$mlst_base/Campylobacter_jejuni.fasta";
