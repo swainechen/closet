@@ -993,6 +993,12 @@ sub do_single_library {
     }
   } elsif (uc(set_option("ASSEMBLER")) eq "SKESA") {
     $contigs = assemble_skesa($q1, $q2);
+    if (!-f $contigs) {
+      $contigs = assemble_velvet($q1, $q2);
+      $final_information .= "Assembly: VelvetOptimizer (SKESA failed)\n";
+    } else {
+      $final_information .= "Assembly: SKESA\n";
+    }
   }
   $contig_stats = assembly_stats($contigs, set_option("contig_min"));
   &shortlog("\n----- Contig stats for initial assembly -----\n$contig_stats->{text}\n-----");
