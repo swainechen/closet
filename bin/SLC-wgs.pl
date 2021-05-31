@@ -268,9 +268,12 @@ sub assemble_skesa {
   $command .= " --cores " . set_option("threads");
   $command .= " --memory " . set_option("MEMORYINGB");
   $command .= " --min_contig ". set_option("contig_min");
-  $command .= " > $expected_file";
+  # we're using the trick of 'command 2>&1 > output'
+  # this puts stdout into the output file, and stderr shows up on stdout
+  # so we can capture stderr with backticks
+  $command .= " 2>&1 > $expected_file";
   &shortlog($command);
-  my $output = `$command 2>&1`;
+  my $output = `$command`;
   &log($output);
   chdir($tempdir);
   if (-f $expected_file) {
