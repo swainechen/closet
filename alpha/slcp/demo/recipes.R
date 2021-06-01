@@ -27,6 +27,9 @@ summary_class <- ddply(blastn_data, .(Query, Contig), contigSummary, .progress="
 stackPlot(summary_class, col=c("gray", "red", "blue"))
 p_contigs <- subset(summary_class[order(summary_class$Length, decreasing=T),], Plasmid > 0.5)$Contig
 plotDetail(contigDetail(subset(blastn_data, Contig==p_contigs[1])))
+# logit_width stretches out the extremes more the closer it is to 1
+# logit_width must be less than 1
+plotDetail(contigDetail(subset(blastn_data, Contig==p_contigs[1])), logit_width=0.99)
 
 # analyze against a single plasmid or assembly
 blastn <- doBlast(assembly, name=assembly, database=known_plasmid)

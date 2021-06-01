@@ -5,7 +5,7 @@
 #'
 #' @export
 #'
-plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
+plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, logit_width = 0, ...) {
   # classification is like the output of ddply using contig_summary
   # it really needs Query, Contig that match Subject of x (which should have Query__Contig)
   # also classification needs Chromosome, Plasmid, None classifications (0-1)
@@ -16,6 +16,8 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   # [[4]] is name
   # [[5]] is best ID for chromosome hits only (Rle element)
   # [[6]] is best ID for plasmid hits only (Rle element)
+  # if logit_width is 0, then use linear scale for ID line graph
+  # logit_width must be < 1, good values might be 0.95 or 0.99
   # first get ranges
   full_IR <- IRanges(start = c(start(x[[1]]), start(x[[2]]), start(x[[3]])), end = c(end(x[[1]]), end(x[[2]]), end(x[[3]])))
   segments <- disjoin(full_IR)
@@ -39,9 +41,9 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   height <- 1
   id_height <- 2
   logit <- function(x) log(x/(1-x))
-  logit_width=0.99
+  logit_ticks <- c(0, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999, 1)
   # logit_scale assumes we're transforming the interval from 0-1
-  logit_scale <- function(x, width=logit_width) logit(x*width + (1-width)/2)/logit((1-width)/2+width)/2+0.5
+  logit_scale <- function(x) if (logit_width <= 0 | logit_width >= 1) x else logit(x*logit_width + (1-logit_width)/2)/logit((1-logit_width)/2+logit_width)/2+0.5
   id_range <- range(c(x[[2]], x[[5]], x[[6]])/100)
   sep <- 0.2
   xmax <- max(end(x[[1]]))
@@ -71,10 +73,9 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   for(i in 1:length(start(x[[1]]))) {
     rect(start(x[[1]])[i], -height/2, end(x[[1]])[i], -sep, col=barcolor[x[[1]]@values[i]], border=NA)
   }
-#  lines(logit_scale(x[[2]]/100) * id_height, col="red", lwd=2)
-  lines(x[[5]]/100 * id_height, col=hsv(h=hue["Chromosome"], s=1, v=1))
-  lines(x[[6]]/100 * id_height, col=hsv(h=hue["Plasmid"], s=1, v=1))
-  lines(x[[2]]/100 * id_height, col=hsv(h=0, s=0, v=0, alpha=0.5), lwd=2)
+  lines(logit_scale(x[[5]]/100) * id_height, col=hsv(h=hue["Chromosome"], s=1, v=1))
+  lines(logit_scale(x[[6]]/100) * id_height, col=hsv(h=hue["Plasmid"], s=1, v=1))
+  lines(logit_scale(x[[2]]/100) * id_height, col=hsv(h=0, s=0, v=0, alpha=0.5), lwd=2)
   xaxis_at <- axTicks(1)
   xaxis_at <- xaxis_at[which(xaxis_at < max(end(x[[1]])))]
   xaxis_at <- c(xaxis_at, max(end(x[[1]])))
@@ -97,7 +98,12 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
     axis(3, labels=c("Plasmid", "Chromosome", "None"), at=c(-0.061*xmax, -0.041*xmax, -0.021*xmax), las=2, cex.axis=0.8)
     axis(1, labels="% rep", at=1.045*xmax, las=2, cex.axis=0.8)
   }
-  axis(4, at=c(0, id_height), labels=id_range, tick=T, cex.axis=0.6, las=1)
+  if (logit_width <= 0 | logit_width >= 1) {
+    axis(4, at=c(0, id_height), labels=id_range, tick=T, cex.axis=0.6, las=1)
+  } else {
+    id_labels <- sort(unique(c(id_range, logit_ticks)))
+    axis(4, at=logit_scale(id_labels)*id_height, labels=id_labels, tick=T, cex.axis=0.6, las=1)
+  }
   title(main=paste(sep="\n", "Contig Detail plot", x[[4]]), xlab="Contig coordinate")
   legendvector <- c(sprintf("Plasmid (%.2f%%)", 100*plasmidnt/totalnt),
                     sprintf("Chromosome (%.2f%%)", 100*chromosoment/totalnt),
