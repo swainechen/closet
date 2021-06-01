@@ -14,6 +14,8 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   # expect a list of 3 Rle elements
   # [[1]] is Plasmid/Chromosome, [[2]] is Identity, [[3]] is the Subject that had the best hit
   # [[4]] is name
+  # [[5]] is best ID for chromosome hits only (Rle element)
+  # [[6]] is best ID for plasmid hits only (Rle element)
   # first get ranges
   full_IR <- IRanges(start = c(start(x[[1]]), start(x[[2]]), start(x[[3]])), end = c(end(x[[1]]), end(x[[2]]), end(x[[3]])))
   segments <- disjoin(full_IR)
@@ -36,6 +38,11 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   par(mar = c(5,10,4,3) + 0.1)
   height <- 1
   id_height <- 2
+  logit <- function(x) log(x/(1-x))
+  logit_width=0.99
+  # logit_scale assumes we're transforming the interval from 0-1
+  logit_scale <- function(x, width=logit_width) logit(x*width + (1-width)/2)/logit((1-width)/2+width)/2+0.5
+  id_range <- range(c(x[[2]], x[[5]], x[[6]])/100)
   sep <- 0.2
   xmax <- max(end(x[[1]]))
   xlim <- c(-0.07*xmax, 1.07*xmax)
@@ -64,7 +71,10 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
   for(i in 1:length(start(x[[1]]))) {
     rect(start(x[[1]])[i], -height/2, end(x[[1]])[i], -sep, col=barcolor[x[[1]]@values[i]], border=NA)
   }
-  lines(x[[2]]/100 * id_height)
+#  lines(logit_scale(x[[2]]/100) * id_height, col="red", lwd=2)
+  lines(x[[5]]/100 * id_height, col=hsv(h=hue["Chromosome"], s=1, v=1))
+  lines(x[[6]]/100 * id_height, col=hsv(h=hue["Plasmid"], s=1, v=1))
+  lines(x[[2]]/100 * id_height, col=hsv(h=0, s=0, v=0, alpha=0.5), lwd=2)
   xaxis_at <- axTicks(1)
   xaxis_at <- xaxis_at[which(xaxis_at < max(end(x[[1]])))]
   xaxis_at <- c(xaxis_at, max(end(x[[1]])))
@@ -87,7 +97,7 @@ plotDetail <- function(x, classification=NULL, border=NULL, minid = 0.7, ...) {
     axis(3, labels=c("Plasmid", "Chromosome", "None"), at=c(-0.061*xmax, -0.041*xmax, -0.021*xmax), las=2, cex.axis=0.8)
     axis(1, labels="% rep", at=1.045*xmax, las=2, cex.axis=0.8)
   }
-  axis(4, at=c(0, id_height), labels=range(x[[2]]/100), tick=T, cex.axis=0.6, las=1)
+  axis(4, at=c(0, id_height), labels=id_range, tick=T, cex.axis=0.6, las=1)
   title(main=paste(sep="\n", "Contig Detail plot", x[[4]]), xlab="Contig coordinate")
   legendvector <- c(sprintf("Plasmid (%.2f%%)", 100*plasmidnt/totalnt),
                     sprintf("Chromosome (%.2f%%)", 100*chromosoment/totalnt),

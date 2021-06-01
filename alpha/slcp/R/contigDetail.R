@@ -81,5 +81,5 @@ contigDetail <- function(x, meta=ref_meta) {
     }
   }
   perc_chrom <- length(IRanges::which(final == "Chromosome"))/total
-  return(list(final, final_id, final_subject, paste(sep=" ", x$Query[1], x$Contig[1])))
+  return(list(final, final_id, final_subject, paste(sep=" ", x$Query[1], x$Contig[1]), v_Chrom, v_Plasm))
 }
