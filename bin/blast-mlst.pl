@@ -57,7 +57,7 @@ if (!-f $mlst_fasta || !-f $mlst_def || !defined $ARGV[0] || !-f $ARGV[0]) {
 }
 
 my $xs = XML::Simple->new;
-my @data = `slc-blastn -db $ARGV[0] $mlst_fasta -m 5`;
+my @data = `slc-blastn -db $ARGV[0] $mlst_fasta -m 5 -b 5`;
 foreach $i (0..$#data) {
   chomp $data[$i];
 }
@@ -75,6 +75,7 @@ my $allele;
 my $hits;
 my $length;
 my $t;
+my $u;
 my $hitlength;
 my $hitidentity;
 my $hitgaps;
@@ -97,11 +98,17 @@ if (defined $ref->{"BlastOutput_iterations"}->{"Iteration"}) {
       $hitlength = 0;
       $hitidentity = 0;
       $hitgaps = 0;
-      if (defined $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) {
-        if (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) eq "HASH") {
-          $t = $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"};
-        } elsif (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) eq "ARRAY") {
-          $t = $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}->[0];
+
+      if (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}) eq "HASH") {
+        $u = $h->[$i]->{"Iteration_hits"}->{"Hit"};
+      } elsif (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}) eq "ARRAY") {
+        $u = $h->[$i]->{"Iteration_hits"}->{"Hit"}->[0];
+      }
+      if (defined $u->{"Hit_hsps"}->{"Hsp"}) {
+        if (ref($u->{"Hit_hsps"}->{"Hsp"}) eq "HASH") {
+          $t = $u->{"Hit_hsps"}->{"Hsp"};
+        } elsif (ref($u->{"Hit_hsps"}->{"Hsp"}) eq "ARRAY") {
+          $t = $u->{"Hit_hsps"}->{"Hsp"}->[0];
         }
         $hitlength = $t->{"Hsp_align-len"};
         $hitidentity = $t->{"Hsp_identity"};

@@ -3,6 +3,7 @@
 # This is just a frontend for blastall so that you can do a blastp or
 # blastn against a given organism more easily.
 # This assumes you only want the top hit for each query sequence
+# 210812 - default to 5 hits (-b 5) as per https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6662297/
 # and uses 2 CPUs by default, no alignments are shown.
 # Only allows blastp and blastn searches.
 
@@ -17,7 +18,7 @@ my $dbtype = "p";		# protein
 my $eValue = 0.0000000001;
 my $F = 'F';		# no filtering if this is 'F'
 my $m = 6;
-my $b = 1;
+my $b = 5;
 my $v = 0;
 my $db = "";
 my $outfmt = "";

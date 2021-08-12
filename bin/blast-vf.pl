@@ -49,7 +49,7 @@ if (!-f $fasta || !defined $ARGV[0] || !-f $ARGV[0]) {
 }
 
 my $xs = XML::Simple->new;
-my @data = `slc-blastn -db $ARGV[0] $fasta -m 5`;
+my @data = `slc-blastn -db $ARGV[0] $fasta -m 5 -b 5`;
 foreach $i (0..$#data) {
   chomp $data[$i];
 }
@@ -71,6 +71,7 @@ my $cmap;
 my $amap;
 my $hits;
 my $t;
+my $u;
 my $hitlength;
 my $hitidentity;
 my $hitgaps;
@@ -115,12 +116,17 @@ if (defined $ref->{"BlastOutput_iterations"}->{"Iteration"}) {
       } else {
         $annotation = "";
       }
-      if (defined $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) {
-        if (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) eq "HASH") {
-          $t = $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"};
-        } elsif (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}) eq "ARRAY") {
+      if (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}) eq "HASH") {
+        $u = $h->[$i]->{"Iteration_hits"}->{"Hit"};
+      } elsif (ref($h->[$i]->{"Iteration_hits"}->{"Hit"}) eq "ARRAY") {
+        $u = $h->[$i]->{"Iteration_hits"}->{"Hit"}->[0];
+      }
+      if (defined $u->{"Hit_hsps"}->{"Hsp"}) {
+        if (ref($u->{"Hit_hsps"}->{"Hsp"}) eq "HASH") {
+          $t = $u->{"Hit_hsps"}->{"Hsp"};
+        } elsif (ref($u->{"Hit_hsps"}->{"Hsp"}) eq "ARRAY") {
           # take the top hit
-          $t = $h->[$i]->{"Iteration_hits"}->{"Hit"}->{"Hit_hsps"}->{"Hsp"}->[0];
+          $t = $u->{"Hit_hsps"}->{"Hsp"}->[0];
         }
         $hitlength = $t->{"Hsp_align-len"};
         $hitidentity = $t->{"Hsp_identity"};
