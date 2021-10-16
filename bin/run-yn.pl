@@ -39,7 +39,7 @@ foreach $f (@ARGV) {
   chdir $tempdir;
   my $name_hash = to_phylip_names(\@dna);
 
-  if ($align) {
+  if ($do_align) {
     # translate
     open T, "| translate.pl -noseq -nosix -notri > $tempdir/translate.tmp";
     print T join ("\n", @dna), "\n";
