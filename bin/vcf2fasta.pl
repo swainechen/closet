@@ -22,6 +22,8 @@ my $snponly = 1;	# whether to use only SNPs (ignore indels)
 my $min_AF = 0.5;	# minimum allele frequency
 my $rename = 0;		# if rename is true, then use the header line of
 			# the vcf file, only do this if one chromosome
+my $force_name = "";	# override with this for output fasta name if set
+my $show_help = 0;
 
 GetOptions (
   'ref=s' => \$reference_file,
@@ -29,7 +31,9 @@ GetOptions (
   'minaf=f' => \$min_AF,
   'all!' => \$all,
   'snponly!' => \$snponly,
-  'rename!' => \$rename
+  'name=s' => \$force_name,
+  'rename!' => \$rename,
+  'help' => \$show_help
 );
 
 my ($chr, $pos, $ref, $alt);
@@ -37,6 +41,10 @@ my (@a, @f, @alleles, $allelenum);
 my $AF;
 my $indel;
 my @names;
+
+if ($show_help) {
+  &print_usage;
+}
 
 if (!defined $ARGV[0] && (!defined $reference_file || !-f $reference_file)) {
   &print_usage;
@@ -137,7 +145,9 @@ if (!$snponly) {
   }
 }
 @a = slchen::hash2fasta($a);
-if ($rename && $#a == 1 && $a[0] =~ /^>/ &&
+if ($force_name ne "" && $#a == 1 && $a[0] =~ /^>/) {
+  $a[0] = ">$force_name";
+} elsif ($rename && $#a == 1 && $a[0] =~ /^>/ &&
     defined $names[$field] && length($names[$field])) {
   $a[0] = ">$names[$field]";
 }
@@ -148,10 +158,37 @@ sub print_usage {
   if (defined $error) {
     print STDERR $error, "\n";
   }
-  print "Usage: $0 [ <orgcode> | -ref <reference fasta> ] [ -field <vcf field> ] <snp or vcf file>\n";
-  print "VCF or snp file comes in on standard input.\n";
-  print "Field is for VCF files with multiple entries.\n";
-  print "Generally field 9 is the first entry.\n";
-  print "If field is 0 then just use all the vcf lines\n";
+
+print <<__HELP__;
+Usage: $0 [ <orgcode> | -ref <reference fasta> ] [options] <snp or vcf file>
+
+Take a VCF or snp file (from lofreq, for example) and a reference sequence.
+Output a sequence with the variants/SNPs incorporated.
+
+VCF or snp file comes in on standard input.
+Output goes to STDOUT, be sure to redirect to a file if needed.
+
+Options:
+  -field <int>       : For VCF files with genotype data, which can accommodate
+                       multiple named samples. This option is 0-based, generally
+                       -field 9 is the first sample.
+                       Default 0 (use all fields)
+  -rename|norename   : Whether to use VCF genotype column names for fasta names
+                       This only makes sense if the reference has one contig
+                       Default -norename (output fasta has the same fasta names
+                       as the input reference sequences)
+  -name <string>     : Force output fasta to have this name
+                       This only makes sense if the reference has one contig
+		       Default "" (no forced name)
+  -minaf <float>     : Minimum allele frequency (AF) cutoff
+                       Default 0.5
+  -all|noall         : Whether to use the VCF FILTER column
+                       Default -noall (only use PASS lines)
+  -snponly|nosnponly : Whether to use only SNPs (and ignore INDELs)
+                       Default -snponly (only use SNPs)
+  -help              : Show this help and exit
+
+__HELP__
+
   exit;
 }
