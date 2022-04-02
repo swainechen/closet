@@ -6,20 +6,20 @@ use XML::Simple;
 use Data::Dumper;
 my @record = ();
 my $parse = {};
+my @input = ();
+my $line;
+# clean things up a bit first with newlines
+# also separate the BioSamples within each BioSampleSet for XML::Simple
 while (<>) {
   next if /^$/;
-  if (/^<\?xml version="1.0"/) {
-    # new record
-    if (scalar @record) {
-      parse_biosample($parse, @record);
-    }
-    @record = ($_);
-  } else {
-    push @record, $_;
-  }
+  s/<\?xml/\n<?xml/g;
+  s/<\/BioSample> <BioSample /<\/BioSample> <\/BioSampleSet>\n<BioSampleSet> <BioSample /g;
+  push @input, split(/\n/, $_);
 }
-if (scalar @record) {
-  parse_biosample($parse, @record);
+foreach $line (@input) {
+  next if $line =~ /^$/;
+  next if $line =~ /^<\?xml version="1.0"/;
+  parse_biosample($parse, $line);
 }
 my $fields = ();
 foreach $key (keys %$parse) {
