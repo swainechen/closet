@@ -7,6 +7,7 @@ use Data::Dumper;
 my @record = ();
 my $parse = {};
 while (<>) {
+  next if /^$/;
   if (/^<\?xml version="1.0"/) {
     # new record
     if (scalar @record) {
