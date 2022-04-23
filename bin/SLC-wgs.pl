@@ -117,7 +117,7 @@ if (!$default_options->{MEMORYINGB}) {
 }
 $default_options->{SEED} = 11;
 $default_options->{KRAKEN2}->{reads} = 100000;
-$default_options->{KRAKEN2}->{DB} = "/usr/local/lib/Kraken2/minikraken2_v2_8GB_201904_UPDATE";
+$default_options->{KRAKEN2}->{DB} = "/usr/local/lib/Kraken2/k2_standard_8gb_20210517";
 $default_options->{KRAKEN2}->{classification} = "NONE";
 
 my $user_options = {};
