@@ -19,6 +19,7 @@ my $submit_wait = 0;	#in seconds
 my $MAX_SIMULTANEOUS = 100;
 
 # set up limits - hash ref keyed on Instance Type then Zone
+my $limit;
 $limit->{__TOTAL__} = 4510;
 foreach $i (@zonelist) {
   $limit->{"r5a.large"}->{$i} = 500;
@@ -61,7 +62,6 @@ my @input;
 my $summary;
 my $available_total;
 my $available;
-my $limit;
 my $start = 0;
 my $print_help = 0;
 my $type;
