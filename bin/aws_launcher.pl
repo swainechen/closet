@@ -47,7 +47,11 @@ su - ubuntu -c "aws ec2 create-tags --resources $ID --tags \"Key=Project,Value=$
 # shut down the instance
 init 0
 ';
-$LAUNCH_TEMPLATE="aws --profile __PROFILE__ ec2 run-instances --image-id __AMI__ --count 1 --instance-type __TYPE__ --key-name __KEY__ --user-data __USERDATA__ --instance-initiated-shutdown-behavior terminate --placement AvailabilityZone=__ZONE__";
+
+# this first command is just for on demand
+$CLI_EC2_TEMPLATE="aws --profile __PROFILE__ ec2 run-instances --image-id __AMI__ --count 1 --instance-type __TYPE__ --key-name __KEY__ --user-data __USERDATA__ --instance-initiated-shutdown-behavior terminate --placement AvailabilityZone=__ZONE__";
+# this version is for spot instances
+$CLI_EC2_TEMPLATE="aws --profile __PROFILE__ ec2 run-instances --image-id __AMI__ --count 1 --instance-type __TYPE__ --count 1 --key-name __KEY__ --user-data __USERDATA__ --instance-initiated-shutdown-behavior terminate --placement AvailabilityZone=__ZONE__ --iam-instance-profile Name=\"IAM-slchen-lab-spot\" --instance-market-options \"MarketType=spot,SpotOptions={SpotInstanceType=one-time}\"";
 
 ################################
 # End of typical configuration #
@@ -150,7 +154,7 @@ while ($i < scalar(@input)) {
         $userdata_out =~ s/__TAG__/$TAG/g;
         print F $userdata_out;
         close F;
-        $launch_command = $LAUNCH_TEMPLATE;
+        $launch_command = $CLI_EC2_TEMPLATE;
         $launch_command =~ s/__PROFILE__/$PROFILE/g;
         $launch_command =~ s/__AMI__/$AMI/g;
         $launch_command =~ s/__TYPE__/$type/g;
