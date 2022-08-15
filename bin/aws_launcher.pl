@@ -35,7 +35,7 @@ ID=$(GET http://169.254.169.254/latest/meta-data/instance-id)
 su - ubuntu -c "aws ec2 create-tags --resources $ID --tags \"Key=Name,Value=Auto-$RUN\""
 su - ubuntu -c "aws ec2 create-tags --resources $ID --tags \"Key=Project,Value=$TAG\""
 
-# the main commands
+# the main commands - note these are all run as root, and the working directory is / (not /root)
 # wget https://some_reference_sequence
 # bwa index some_reference_sequence
 # aws s3 cp s3://some_bucket/${RUN}_R1.fastq.gz /home/ubuntu
